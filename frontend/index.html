@@ -29,7 +29,7 @@
 
         <div id="view-login" class="space-y-5">
             <div class="flex flex-col items-center space-y-2 border-b pb-4">
-                <img id="login-avatar-display" src="file:///C:/Users/dfdec/Downloads/image.png" alt="Admin Perfil" class="w-24 h-24 rounded-full object-cover border-4 border-blue-600/20 shadow-md transition-transform duration-300 hover:scale-105">
+                <img id="login-avatar-display" src="" alt="Admin Perfil" class="w-24 h-24 rounded-full object-cover border-4 border-blue-600/20 shadow-md transition-transform duration-300 hover:scale-105">
                 <h2 class="text-md font-bold text-slate-700">Panel de Acceso</h2>
             </div>
 
@@ -107,7 +107,7 @@
                 <img id="settings-avatar-preview" src="" alt="Avatar" class="w-20 h-20 rounded-full object-cover border-4 border-blue-500 shadow-md">
                 <label class="cursor-pointer bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-bold px-3 py-1.5 rounded-lg border border-slate-300/60 transition-all flex items-center space-x-1.5">
                     <i class="fas fa-image"></i>
-                    <span>Elegir Imagen Descargada</span>
+                    <span>Elegir Imagen</span>
                     <input type="file" id="input-foto-file" accept="image/*" class="hidden" onchange="procesarFotoLocal(this)">
                 </label>
             </div>
@@ -148,33 +148,28 @@
                 </div>
             </form>
         </div>
-
     </div>
 
     <script>
-        const API_BASE = 'http://localhost:3000/api';
+        const API_BASE = 'https://taller-rafael.onrender.com/api';
         const SECURITY_PIN = '202611';
-        const FOTO_POR_DEFECTO = "file:///C:/Users/dfdec/Downloads/image.png"; 
         
         let fotoBinariaBase64 = "";
         let intentosRestantes = 3;
 
-        // Al iniciar la pantalla, sincronizamos la foto de perfil guardada en LocalStorage
         document.addEventListener('DOMContentLoaded', () => {
             if (!localStorage.getItem('adminEmail')) {
                 localStorage.setItem('adminEmail', 'sandra@admin.com');
-                localStorage.setItem('adminFoto', FOTO_POR_DEFECTO);
             }
             actualizarAvataresDeInterfaz();
         });
 
         function actualizarAvataresDeInterfaz() {
-            const fotoActual = localStorage.getItem('adminFoto') || FOTO_POR_DEFECTO;
+            const fotoActual = localStorage.getItem('adminFoto') || 'https://via.placeholder.com/150';
             document.getElementById('login-avatar-display').src = fotoActual;
             document.getElementById('settings-avatar-preview').src = fotoActual;
         }
 
-        // Cambiar entre pantallas de la interfaz
         function showView(viewId) {
             document.getElementById('view-login').classList.add('hidden');
             document.getElementById('view-pin').classList.add('hidden');
@@ -182,7 +177,6 @@
             document.getElementById(viewId).classList.remove('hidden');
         }
 
-        // Revelador/Ocultador de claves
         function togglePassword(inputId, iconId) {
             const input = document.getElementById(inputId);
             const icon = document.getElementById(iconId);
@@ -195,34 +189,25 @@
             }
         }
 
-        // Lanzador de Notificación Toast adaptable
         function showToast(message, isSuccess = true) {
             const toast = document.getElementById('toast');
             const icon = document.getElementById('toast-icon');
-            
             document.getElementById('toast-message').innerText = message;
-            
             if(isSuccess) {
-                toast.classList.remove('bg-rose-600', 'border-rose-500/30');
-                toast.classList.add('bg-emerald-600', 'border-emerald-500/30');
+                toast.className = "fixed top-5 right-5 bg-emerald-600 text-white px-6 py-3.5 rounded-xl shadow-2xl flex items-center space-x-3 transform transition-transform duration-500 ease-out z-50 border border-emerald-500/30";
                 icon.className = "fas fa-check-circle text-xl animate-pulse";
             } else {
-                toast.classList.remove('bg-emerald-600', 'border-emerald-500/30');
-                toast.classList.add('bg-rose-600', 'border-rose-500/30');
+                toast.className = "fixed top-5 right-5 bg-rose-600 text-white px-6 py-3.5 rounded-xl shadow-2xl flex items-center space-x-3 transform transition-transform duration-500 ease-out z-50 border border-rose-500/30";
                 icon.className = "fas fa-exclamation-circle text-xl animate-bounce";
             }
-
             toast.classList.remove('translate-y-[-150%]');
-            setTimeout(() => {
-                toast.classList.add('translate-y-[-150%]');
-            }, 4000);
+            setTimeout(() => { toast.classList.add('translate-y-[-150%]'); }, 4000);
         }
 
-        // Lector para transformar la imagen descargada en Base64 persistente
         function procesarFotoLocal(input) {
             if (input.files && input.files[0]) {
                 const reader = new FileReader();
-                reader.onload = function(e) {
+                reader.onload = (e) => {
                     fotoBinariaBase64 = e.target.result;
                     document.getElementById('settings-avatar-preview').src = fotoBinariaBase64;
                 }
@@ -230,7 +215,6 @@
             }
         }
 
-        // 1. Envío de Formulario de Inicio de Sesión + Bienvenida Estética
         document.getElementById('form-login').addEventListener('submit', async (e) => {
             e.preventDefault();
             const email = document.getElementById('login-email').value;
@@ -246,133 +230,35 @@
 
                 if (data.success) {
                     localStorage.setItem('adminEmail', data.user.email);
-                    if (data.user.foto_perfil) {
-                        localStorage.setItem('adminFoto', data.user.foto_perfil);
-                    }
+                    if (data.user.foto_perfil) localStorage.setItem('adminFoto', data.user.foto_perfil);
                     
-                    // Mensaje bonito y profesional en vez de alert abrupto
-                    showToast(`¡Bienvenido de nuevo al sistema, Administrador!`, true);
+                    showToast('¡Bienvenido al Sistema!', true);
                     
+                    // AQUI ESTÁ EL CAMBIO: Redirige a dashboard.html
                     setTimeout(() => {
-                        window.location.href = 'index.html'; 
+                        window.location.href = 'dashboard.html'; 
                     }, 2000);
                 } else {
-                    showToast('Credenciales incorrectas. Verifique e intente de nuevo.', false);
+                    showToast('Credenciales incorrectas.', false);
                 }
             } catch (error) {
-                console.error(error);
-                showToast('No se pudo establecer comunicación con el servidor.', false);
+                showToast('Error de conexión con el servidor.', false);
             }
         });
 
-        // 2. Validación de PIN con Control Estricto de Reintentos y Penalización por tiempo
         document.getElementById('form-pin').addEventListener('submit', (e) => {
             e.preventDefault();
             const pinVal = document.getElementById('pin-input').value;
-            const errorMsg = document.getElementById('pin-error-msg');
-            const pinInput = document.getElementById('pin-input');
-            const btnValidate = document.getElementById('btn-validate-pin');
-
             if (pinVal === SECURITY_PIN) {
-                // Éxito: Limpieza e ingreso directo a los ajustes
-                intentosRestantes = 3; 
-                errorMsg.classList.add('hidden');
-                pinInput.value = ''; 
-                document.getElementById('settings-email').placeholder = localStorage.getItem('adminEmail');
-                fotoBinariaBase64 = ""; 
                 showView('view-settings');
             } else {
-                intentosRestantes--;
-                pinInput.value = '';
-
-                if (intentosRestantes > 0) {
-                    errorMsg.innerText = `PIN incorrecto. Te quedan ${intentosRestantes} intentos.`;
-                    errorMsg.classList.remove('hidden');
-                } else {
-                    // Cero intentos: Bloquear interfaz por 15 segundos
-                    let tiempoBloqueo = 15;
-                    pinInput.disabled = true;
-                    btnValidate.disabled = true;
-                    
-                    const intervalo = setInterval(() => {
-                        errorMsg.innerText = `Has agotado tus intentos. Espera ${tiempoBloqueo} segundos para reintentarlo.`;
-                        errorMsg.classList.remove('hidden');
-                        tiempoBloqueo--;
-
-                        if (tiempoBloqueo < 0) {
-                            clearInterval(intervalo);
-                            // Restaurar con 3 nuevas oportunidades adicionales
-                            intentosRestantes = 3;
-                            pinInput.disabled = false;
-                            btnValidate.disabled = false;
-                            errorMsg.innerText = "Tienes 3 nuevas oportunidades. Ingrese el PIN correcto.";
-                        }
-                    }, 1000);
-                }
+                showToast('PIN incorrecto.', false);
             }
         });
 
-        function cancelarPin() {
-            document.getElementById('pin-input').value = '';
-            document.getElementById('pin-error-msg').classList.add('hidden');
-            showView('view-login');
-        }
+        function cancelarPin() { showView('view-login'); }
 
-        // 3. Guardado Dinámico de Ajustes (Endpoint /api/admin/perfil)
-        document.getElementById('form-settings').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const emailActual = localStorage.getItem('adminEmail');
-            const nuevoEmail = document.getElementById('settings-email').value;
-            const pass = document.getElementById('settings-password').value;
-            const confirmPass = document.getElementById('settings-confirm-password').value;
-
-            if (pass !== confirmPass) {
-                showToast('Las contraseñas ingresadas no coinciden.', false);
-                return;
-            }
-
-            const payload = {
-                email_actual: emailActual,
-                nuevo_email: nuevoEmail,
-                nueva_contrasena: pass,
-                nueva_foto: document.getElementById('input-foto-file').files.length > 0 ? fotoBinariaBase64 : ""
-            };
-
-            try {
-                const response = await fetch(`${API_BASE}/admin/perfil`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-
-                const data = await response.json();
-
-                if (data.success) {
-                    localStorage.setItem('adminEmail', data.user.email);
-                    if (data.user.foto_perfil) {
-                        localStorage.setItem('adminFoto', data.user.foto_perfil);
-                    }
-
-                    document.getElementById('form-settings').reset();
-                    actualizarAvataresDeInterfaz();
-                    
-                    showView('view-login');
-                    showToast('¡Los cambios se realizaron correctamente!', true);
-                } else {
-                    showToast('Error: ' + data.message, false);
-                }
-            } catch (error) {
-                console.error(error);
-                showToast('Error al actualizar los ajustes en el servidor.', false);
-            }
-        });
-
-        function cancelSettings() {
-            document.getElementById('form-settings').reset();
-            actualizarAvataresDeInterfaz();
-            showView('view-login');
-        }
+        function cancelSettings() { showView('view-login'); }
     </script>
 </body>
 </html>
