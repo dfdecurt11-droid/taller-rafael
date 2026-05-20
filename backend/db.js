@@ -2,20 +2,17 @@
 const { Pool } = require('pg');
 require('dotenv').config();
 
-// Usamos connectionString para leer la URL completa de Supabase
+// Configura las credenciales de tu PostgreSQL
 const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
-    ssl: {
-        rejectUnauthorized: false // Necesario para conexiones externas a Supabase
-    }
+    user: process.env.DB_USER || 'postgres',
+    host: process.env.DB_HOST || 'localhost',
+    database: process.env.DB_NAME || 'Taller_Sandra',
+    password: process.env.DB_PASSWORD || 'database',
+    port: process.env.DB_PORT || 5432,
 });
 
 pool.on('connect', () => {
-    console.log('📌 Conexión exitosa con PostgreSQL (Supabase)');
-});
-
-pool.on('error', (err) => {
-    console.error('❌ Error inesperado en el cliente de base de datos:', err);
+    console.log('📌 Conexión exitosa con PostgreSQL');
 });
 
 module.exports = {
