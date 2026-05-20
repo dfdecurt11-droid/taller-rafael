@@ -151,7 +151,8 @@
     </div>
 
     <script>
-        const API_BASE = 'https://taller-rafael.onrender.com/api/login';
+        // CORREGIDO: Ahora API_BASE es la URL raíz de la API
+        const API_BASE = 'https://taller-rafael.onrender.com/api';
         const SECURITY_PIN = '202611';
         
         let fotoBinariaBase64 = "";
@@ -221,6 +222,7 @@
             const contrasena = document.getElementById('login-password').value;
 
             try {
+                // CORREGIDO: Ahora llama correctamente a /api/login
                 const response = await fetch(`${API_BASE}/login`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -234,7 +236,6 @@
                     
                     showToast('¡Bienvenido al Sistema!', true);
                     
-                    // AQUI ESTÁ EL CAMBIO: Redirige a dashboard.html
                     setTimeout(() => {
                         window.location.href = 'dashboard.html'; 
                     }, 2000);
