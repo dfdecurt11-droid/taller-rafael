@@ -6,23 +6,11 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // =========================================================================
-// CONFIGURACIÓN CORS (Permite desarrollo local y producción)
+// CONFIGURACIÓN CORS (CRUCIAL PARA QUE FUNCIONE EN PRODUCCIÓN)
 // =========================================================================
-const allowedOrigins = [
-    "https://taller-rafael-1.onrender.com", // Tu dominio en producción
-    "http://127.0.0.1:5500",                // Tu entorno local (Live Server de VS Code)
-    "http://localhost:5500"                 // Alternativa local
-];
-
 const corsOptions = {
-    origin: function (origin, callback) {
-        // Permitir peticiones sin origen (como herramientas de desarrollo o apps móviles)
-        if (!origin || allowedOrigins.indexOf(origin) !== -1) {
-            callback(null, true);
-        } else {
-            callback(new Error('No permitido por CORS'));
-        }
-    },
+    // Reemplaza esto con la URL real de tu frontend desplegado en Render
+    origin: "https://taller-rafael-1.onrender.com", 
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true
 };
@@ -94,6 +82,8 @@ app.get('/api/trabajadores', async (req, res) => {
         res.status(500).json({ error: 'Error al listar' });
     }
 });
+
+// ... (El resto de tus métodos PUT y DELETE se mantienen igual) ...
 
 // =========================================================================
 // INICIALIZACIÓN
