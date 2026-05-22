@@ -6,11 +6,25 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // =========================================================================
-// CONFIGURACIÓN CORS (CRUCIAL PARA QUE FUNCIONE EN PRODUCCIÓN)
+// CONFIGURACIÓN CORS
 // =========================================================================
+const allowedOrigins = [
+    "https://taller-rafael-1.onrender.com",
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "http://localhost:5500",
+    "http://127.0.0.1:5500",
+];
+
 const corsOptions = {
-    // Reemplaza esto con la URL real de tu frontend desplegado en Render
-    origin: "https://taller-rafael-1.onrender.com", 
+    origin: function (origin, callback) {
+        // Permitir peticiones sin origin (archivos locales, Postman, etc.)
+        if (!origin || allowedOrigins.includes(origin)) {
+            callback(null, true);
+        } else {
+            callback(new Error(`CORS bloqueado para el origen: ${origin}`));
+        }
+    },
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true
 };
@@ -89,5 +103,5 @@ app.get('/api/trabajadores', async (req, res) => {
 // INICIALIZACIÓN
 // =========================================================================
 app.listen(PORT, () => {
-    console.log(`🚀 Servidor corriendo en puerto ${PORT}`);
+    console.log(`Corriendo el servidor del INGE en el puerto: ${PORT}`);
 });

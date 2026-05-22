@@ -117,10 +117,30 @@
             transition: border-color 0.2s;
         }
 
-        .form-control:focus {
-            outline: none;
-            border-color: var(--primary-color);
-        }
+    <script>
+        const API_URL = "http://localhost:3000/api/trabajadores";
+        const FACTOR_HORAS_SEMANALES = 62; // Factor usado para calcular el precio por hora de forma automática
+        
+        let trabajadores = [];
+        let indexSeleccionado = null;
+
+        document.addEventListener("DOMContentLoaded", () => {
+            evaluarEstadoLaboral();
+            cargarTrabajadoresDesdeBackend();
+            setInterval(evaluarEstadoLaboral, 30000);
+
+            // Escuchar el input de sueldo base en el formulario para pre-calcular el precio por hora
+            document.getElementById("formSueldo").addEventListener("input", function() {
+                const sueldoVal = parseFloat(this.value);
+                const inputPagoHora = document.getElementById("formPagoHora");
+                if (!isNaN(sueldoVal) && sueldoVal > 0) {
+                    const calculado = sueldoVal / FACTOR_HORAS_SEMANALES;
+                    inputPagoHora.value = calculado.toFixed(2);
+                } else {
+                    inputPagoHora.value = "0.00";
+                }
+            });
+        });
 
         .toggle-password {
             position: absolute;
