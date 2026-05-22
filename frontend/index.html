@@ -2,629 +2,517 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TALLER RAFAEL'S - Panel de Control</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght=300;400;500;600;700;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>TALLER RAFAEL'S | Login Profesional</title>
     <style>
-        body { font-family: 'Inter', sans-serif; }
+        /* CSS GLOBAL Y DE DISEÑO PROFESIONAL */
+        :root {
+            --primary-color: #3b82f6; 
+            --bg-color: #111827; 
+            --form-bg: #1f2937; 
+            --text-color: #f3f4f6;
+            --text-muted: #9ca3af;
+            --border-color: #374151;
+            --error-color: #ef4444;
+            --success-color: #10b981;
+            --font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        /* Estilo del mensaje de bienvenida (NUEVO) */
+        #welcome-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(17, 24, 39, 0.95);
+            display: none; /* Oculto por defecto */
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            text-align: center;
+        }
+        .welcome-box h2 { color: var(--success-color); font-size: 2rem; margin-bottom: 1rem; }
+        .welcome-box p { color: var(--text-color); font-size: 1.2rem; }
+
+        #main-container {
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .section {
+            display: none;
+            background-color: var(--form-bg);
+            padding: 2.5rem;
+            border-radius: 1rem;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            border: 1px solid var(--border-color);
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        h1, h2 {
+            text-align: center;
+            margin-bottom: 1.5rem;
+            color: var(--text-color);
+        }
+
+        .profile-pic-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+            position: relative;
+        }
+
+        .profile-pic {
+            width: 96px;
+            height: 96px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid var(--primary-color);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            background-color: #ccc;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+            position: relative;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            border: 1px solid var(--border-color);
+            background-color: transparent;
+            color: var(--text-color);
+            font-size: 1rem;
+            transition: border-color 0.2s;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        .toggle-password {
+            position: absolute;
+            right: 1rem;
+            top: 2.3rem;
+            cursor: pointer;
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 1.2rem;
+        }
+
+        .toggle-password:hover {
+            color: var(--text-color);
+        }
+
+        .btn-primary {
+            width: 100%;
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            border: none;
+            background-color: var(--primary-color);
+            color: white;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .btn-primary:hover {
+            background-color: #2563eb;
+        }
+
+        .btn-secondary {
+            background-color: #4b5563;
+        }
+        .btn-secondary:hover {
+            background-color: #374151;
+        }
+
+        .form-footer {
+            margin-top: 1.5rem;
+            text-align: center;
+        }
+
+        .form-footer a {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+
+        .error-message {
+            color: var(--error-color);
+            font-size: 0.9rem;
+            text-align: center;
+            margin-top: -0.5rem;
+            margin-bottom: 1rem;
+            display: none;
+        }
+
+        #pin-view.active {
+            display: flex !important;
+            justify-content: center;
+            align-items: center;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.8);
+            z-index: 1000;
+        }
+
+        #pin-content {
+            background-color: var(--form-bg);
+            padding: 2.5rem;
+            border-radius: 1rem;
+            width: 90%;
+            max-width: 350px;
+            text-align: center;
+            position: relative;
+        }
+
+        #pin-blocker {
+            display: none;
+            color: var(--error-color);
+            margin-top: 1rem;
+        }
+
+        .custom-file-input {
+            display: none;
+        }
+        .file-upload-label {
+            display: block;
+            margin-top: 0.5rem;
+            text-align: center;
+            cursor: pointer;
+            color: var(--primary-color);
+            font-size: 0.9rem;
+        }
+
+        .config-actions {
+            margin-top: 1.5rem;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        @media (max-width: 480px) {
+            .section {
+                padding: 1.5rem;
+            }
+            .profile-pic {
+                width: 72px;
+                height: 72px;
+            }
+            .config-actions {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
 </head>
-<body class="bg-gray-50 text-gray-800 antialiased min-h-screen flex flex-col md:flex-row">
+<body>
 
-    <aside class="w-full md:w-64 bg-slate-900 text-white flex flex-col justify-between p-5 md:h-screen md:sticky md:top-0 shadow-xl z-40">
-        <div>
-            <div class="flex items-center gap-3 mb-8 border-b border-slate-800 pb-5">
-                <div class="bg-blue-600 p-2 rounded-lg text-white">
-                    <i class="fa-solid fa-screwdriver-wrench text-xl"></i>
-                </div>
-                <div>
-                    <h1 class="font-bold text-lg tracking-wide uppercase">Taller Rafael's</h1>
-                    <span class="text-xs text-slate-400">Sistema de Control</span>
-                </div>
-            </div>
+<div id="welcome-overlay">
+    <div class="welcome-box">
+        <h2>¡Bienvenido, al TALLER RAFAEL'S!</h2>
+        <p>Iniciando sesión en el sistema...</p>
+    </div>
+</div>
 
-            <nav class="space-y-2">
-                <a href="index.html" class="flex items-center gap-3 bg-blue-600 text-white px-4 py-3 rounded-xl font-medium transition-all shadow-md shadow-blue-600/20">
-                    <i class="fa-solid fa-chart-pie w-5"></i> Dashboard
-                </a>
-                <a href="asistencia.html" class="flex items-center gap-3 text-slate-400 hover:bg-slate-800 hover:text-white px-4 py-3 rounded-xl font-medium transition-all">
-                    <i class="fa-solid fa-calendar-check w-5"></i> Asistencia
-                </a>
-            </nav>
+<div id="main-container">
+
+    <div id="login-view" class="section active">
+        <div class="profile-pic-container">
+            <img src="image.png" alt="Perfil" id="login-profile-pic" class="profile-pic" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+            <div style="display:none; width:96px; height:96px; border-radius:50%; background-color:#374151; color:white; justify-content:center; align-items:center; font-size:2rem;">👤</div>
         </div>
-    </aside>
-
-    <main class="flex-1 p-4 sm:p-6 md:p-8 overflow-y-auto">
         
-        <header class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-5 rounded-2xl shadow-sm mb-6 border border-gray-100">
-            <div class="flex items-center gap-4">
-                <div class="relative">
-                    <img id="fotoPerfil" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=256&auto=format&fit=crop" 
-                         onerror="this.src='https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=256&auto=format&fit=crop'"
-                         alt="Foto de Perfil" 
-                         class="w-14 h-14 rounded-full object-cover ring-4 ring-blue-50 border-2 border-white">
-                    <span id="indicadorMini" class="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 border-2 border-white rounded-full"></span>
-                </div>
-                <div>
-                    <h2 class="text-xl font-bold text-gray-900">¡Hola, bienvenido nuevamente!</h2>
-                    <p class="text-sm text-gray-500 font-medium">Administrador principal del taller</p>
-                </div>
-            </div>
+        <h1>Iniciar Sesión</h1>
+        <p class="error-message" id="login-error">Usuario o contraseña incorrectos.</p>
         
-            <div class="flex flex-col sm:flex-row sm:items-center gap-3">
-                <button id="estadoLaboral" class="text-white text-xs sm:text-sm font-semibold px-4 py-2.5 rounded-xl transition-all flex items-center gap-2 cursor-default pointer-events-none"></button>
-                <button onclick="prepararFormulario('crear')" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-3 rounded-xl font-semibold transition-all shadow-lg shadow-blue-600/20 flex items-center justify-center gap-2 text-sm sm:text-base">
-                    <i class="fa-solid fa-plus"></i> Añadir Trabajador
-                </button>
-            </div>
-        </header>
-
-        <section class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 mb-6">
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-center">
-                <div>
-                    <label class="block text-xs font-bold text-gray-500 uppercase mb-2 tracking-wide">Buscador de Personal</label>
-                    <div class="relative">
-                        <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-400">
-                            <i class="fa-solid fa-magnifying-glass"></i>
-                        </span>
-                        <input type="text" id="buscador" oninput="filtrarTrabajadores()" placeholder="Buscar por nombre o DNI..." class="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm transition-all">
-                    </div>
-                </div>
-
-                <div class="bg-amber-50/60 border border-amber-200 p-4 rounded-xl flex items-center justify-between gap-4">
-                    <div>
-                        <span class="block text-xs font-bold text-amber-800 uppercase tracking-wider mb-1">Monto Planilla Disponible</span>
-                        <div class="flex items-center text-xl font-black text-amber-900">
-                            <span class="mr-1">S/.</span>
-                            <input type="number" id="planillaGlobal" step="0.01" value="0.00" class="w-32 bg-transparent border-b border-transparent hover:border-amber-400 focus:border-amber-600 focus:outline-none font-black text-xl text-amber-950 transition-all" title="Haz clic para modificar el dinero total disponible">
-                        </div>
-                    </div>
-                    <div class="bg-amber-500 text-white p-3 rounded-xl text-lg shadow-md shadow-amber-500/10">
-                        <i class="fa-solid fa-wallet"></i>
-                    </div>
-                </div>
-
-                <div class="flex lg:justify-end items-center h-full pt-5 lg:pt-0">
-                    <button onclick="abrirReporteGeneral()" class="w-full lg:w-auto bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold px-5 py-3 rounded-xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/10">
-                        <i class="fa-solid fa-file-pdf"></i> Generar Reporte General
-                    </button>
-                </div>
-            </div>
-        </section>
-
-        <section class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-            <div class="p-5 border-b border-gray-100 flex items-center justify-between">
-                <h3 class="text-lg font-bold text-gray-900">Nómina de Trabajadores</h3>
-                <span id="contadorActivos" class="bg-blue-50 text-blue-700 text-xs font-semibold px-2.5 py-1 rounded-full">0 Activos</span>
-            </div>
-
-            <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse whitespace-nowrap">
-                    <thead>
-                        <tr class="bg-gray-50 text-gray-500 text-xs font-bold uppercase tracking-wider border-b border-gray-100">
-                            <th class="py-4 px-6 text-center">#</th>
-                            <th class="py-4 px-6">Apellidos y Nombres</th>
-                            <th class="py-4 px-6">DNI</th>
-                            <th class="py-4 px-6">Teléfono</th>
-                            <th class="py-4 px-6">Área</th>
-                            <th class="py-4 px-6 text-right">Sueldo Base</th>
-                            <th class="py-4 px-6 text-center">Horas Acum.</th>
-                            <th class="py-4 px-6 text-right">Pago x Hora</th>
-                            <th class="py-4 px-6 text-right text-emerald-600 font-bold bg-emerald-50/20">Ganancia Semanal</th>
-                            <th class="py-4 px-6 text-center">Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tablaTrabajadores" class="divide-y divide-gray-100 text-sm"></tbody>
-                </table>
-            </div>
-        </section>
-    </main>
-
-    <div id="modalTrabajador" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-        <div class="bg-white w-full max-w-lg rounded-2xl shadow-2xl border border-gray-100 overflow-hidden transform transition-all">
-            <div class="bg-slate-950 p-5 text-white flex items-center justify-between">
-                <h4 id="tituloModalTrabajador" class="font-bold text-lg flex items-center gap-2">
-                    <i class="fa-solid fa-user-gear text-blue-500"></i> Datos del Trabajador
-                </h4>
-                <button type="button" onclick="toggleModal('modalTrabajador')" class="text-slate-400 hover:text-white transition-colors">
-                    <i class="fa-solid fa-xmark text-xl"></i>
-                </button>
+        <form id="login-form">
+            <div class="form-group">
+                <label for="login-email">Correo Electrónico</label>
+                <input type="email" id="login-email" class="form-control" placeholder="sandra@admin.com" required>
             </div>
             
-            <form id="formTrabajador" onsubmit="guardarTrabajador(event)" class="p-6 space-y-4">
-                <input type="hidden" id="formId">
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Nombres</label>
-                        <input type="text" id="formNombres" required class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Apellidos</label>
-                        <input type="text" id="formApellidos" required class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-gray-700 uppercase mb-1">DNI</label>
-                        <input type="text" id="formDni" maxlength="8" required class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Teléfono</label>
-                        <input type="tel" id="formTelefono" required class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Área de Trabajo</label>
-                        <select id="formArea" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm">
-                            <option value="maquinista">Maquinista</option>
-                            <option value="manual">Manual</option>
-                            <option value="planchador">Planchador</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Sueldo Base (S/.)</label>
-                        <input type="number" id="formSueldo" step="0.01" required class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm">
-                    </div>
-                    <div class="sm:col-span-2">
-                        <label class="block text-xs font-bold text-gray-400 uppercase mb-1 tracking-wider">Pago por Hora Estimado (S/.)</label>
-                        <input type="text" id="formPagoHora" readonly class="w-full p-3 bg-gray-100 border border-gray-200 rounded-xl font-bold text-blue-600 text-sm outline-none cursor-not-allowed">
-                    </div>
-                </div>
+            <div class="form-group">
+                <label for="login-password">Contraseña</label>
+                <input type="password" id="login-password" class="form-control" placeholder="••••••••" required>
+                <button type="button" class="toggle-password" data-target="login-password">👁️</button>
+            </div>
+            
+            <button type="submit" class="btn-primary">Entrar</button>
+        </form>
+        
+        <div class="form-footer">
+            <a href="#" id="goto-pin">Configuración ⚙️</a>
+        </div>
+    </div>
 
-                <div class="flex items-center justify-end gap-3 pt-4 border-t border-gray-100">
-                    <button type="button" onclick="toggleModal('modalTrabajador')" class="px-5 py-2.5 rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-50 text-sm font-semibold transition-all">Cancelar</button>
-                    <button type="submit" id="btnGuardarTrabajador" class="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold transition-all shadow-lg shadow-blue-600/20">Añadir Trabajador</button>
+    <div id="pin-view" class="section">
+        <div id="pin-content">
+            <h2>Acceso a Configuración</h2>
+            <p style="color: var(--text-muted); margin-bottom: 1.5rem;">Por favor, ingresa tu PIN de seguridad para continuar.</p>
+            <p class="error-message" id="pin-error"></p>
+            
+            <form id="pin-form">
+                <div class="form-group" style="text-align: center;">
+                    <label for="security-pin">PIN de Seguridad (6 dígitos)</label>
+                    <input type="password" id="security-pin" class="form-control" style="text-align: center; letter-spacing: 0.5em; font-size: 1.5rem;" maxlength="6" pattern="[0-9]*" inputmode="numeric" required>
                 </div>
+                
+                <button type="submit" class="btn-primary" id="pin-submit-btn">Ingresar PIN</button>
             </form>
-        </div>
-    </div>
-
-    <div id="modalConfirmarPago" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-        <div class="bg-white w-full max-w-md rounded-2xl shadow-2xl border border-gray-100 overflow-hidden p-6 text-center">
-            <div class="w-16 h-16 bg-emerald-50 text-emerald-500 rounded-full flex items-center justify-center text-3xl mx-auto mb-4 border border-emerald-200">
-                <i class="fa-solid fa-wallet"></i>
+            
+            <div id="pin-blocker">
+                Has superado los intentos. Por favor espera <span id="countdown">15</span> segundos.
             </div>
-            <h4 class="text-xl font-bold text-gray-900 mb-1">¿Confirmar Pago Semanal?</h4>
-            <p id="montoDescuentoTexto" class="text-sm text-gray-600 mb-4"></p>
-            <div class="flex items-center justify-center gap-3 mt-6">
-                <button onclick="toggleModal('modalConfirmarPago')" class="px-5 py-2.5 rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-50 text-sm font-semibold transition-all">Cancelar</button>
-                <button onclick="procesarPagoExitosa()" class="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold transition-all shadow-lg shadow-emerald-600/20">Efectuar Pago</button>
+            
+            <div class="form-footer" style="margin-top: 1rem;">
+                <a href="#" id="pin-back-to-login" style="color:var(--text-muted)">Cancelar</a>
             </div>
         </div>
     </div>
 
-    <div id="modalEliminarTrabajador" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-        <div class="bg-white w-full max-w-md rounded-2xl shadow-2xl border border-gray-100 overflow-hidden p-6 text-center">
-            <div class="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center text-3xl mx-auto mb-4 border border-red-200">
-                <i class="fa-solid fa-user-minus"></i>
-            </div>
-            <h4 class="text-xl font-bold text-gray-900 mb-1">¿Desea despedir al trabajador?</h4>
-            <p id="nombreTrabajadorDespido" class="font-bold text-blue-600 mb-3 text-lg"></p>
-            <p class="text-gray-500 text-sm mb-4 leading-relaxed">Esta acción dará de baja al empleado en el sistema de manera definitiva.</p>
-            <div class="flex justify-center items-center gap-3 mt-6">
-                <button onclick="toggleModal('modalEliminarTrabajador')" class="px-5 py-2.5 rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-50 text-sm font-semibold transition-all">Cancelar</button>
-                <button onclick="confirmarDespido()" class="px-5 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white text-sm font-semibold transition-all shadow-lg shadow-red-600/20">Despedir</button>
-            </div>
-        </div>
-    </div>
-
-    <div class="hidden">
-        <div id="areaReporteIndividual" class="p-10 space-y-6 text-slate-800 bg-white">
-            <div class="flex justify-between items-start border-b-2 border-slate-900 pb-4">
-                <div>
-                    <h2 class="text-2xl font-black text-slate-900 uppercase tracking-tight">TALLER RAFAEL'S</h2>
-                    <p class="text-xs text-gray-500 font-medium">Boleta Simplificada de Asistencia</p>
-                </div>
-                <div class="text-right text-xs text-gray-400">
-                    <p>Fecha Emisión: 19/05/2026</p>
-                </div>
-            </div>
-            <div class="grid grid-cols-2 gap-y-3 bg-gray-50 p-4 rounded-xl border border-gray-100 text-sm">
-                <div><span class="text-gray-400 text-xs block">Trabajador:</span> <strong id="repIndNombre" class="text-gray-900"></strong></div>
-                <div><span class="text-gray-400 text-xs block">DNI:</span> <span id="repIndDni" class="font-medium"></span></div>
-                <div><span class="text-gray-400 text-xs block">Teléfono:</span> <span id="repIndTelefono" class="font-medium"></span></div>
-                <div><span class="text-gray-400 text-xs block">Área Asignada:</span> <span id="repIndArea" class="font-medium capitalize"></span></div>
-                <div><span class="text-gray-400 text-xs block">Sueldo Base:</span> <span id="repIndSueldo" class="font-medium"></span></div>
-                <div><span class="text-gray-400 text-xs block">Pago por Horas:</span> <span id="repIndPagoHora" class="font-medium text-blue-600 font-bold"></span></div>
-            </div>
-            <div>
-                <table class="w-full text-left text-xs border border-gray-100 rounded-lg overflow-hidden">
-                    <thead class="bg-gray-100 text-gray-700 uppercase font-bold">
-                        <tr>
-                            <th class="p-3 text-center">#</th>
-                            <th class="p-3">Fecha de Control</th>
-                            <th class="p-3">Hora Entrada</th>
-                            <th class="p-3">Hora Salida</th>
-                            <th class="p-3 text-right">Horas Realizadas</th>
-                        </tr>
-                    </thead>
-                    <tbody id="repIndTablaCuerpo"></tbody>
-                </table>
-            </div>
-            <div class="grid grid-cols-2 gap-4 pt-4 border-t border-gray-100">
-                <div class="bg-slate-50 p-3 rounded-lg"><span class="text-xs text-gray-500 uppercase block">Total Horas</span><strong id="repIndTotalHoras" class="text-xl text-slate-900"></strong></div>
-                <div class="bg-emerald-50 p-3 rounded-lg"><span class="text-xs text-emerald-800 uppercase block">Total Neto Semanal</span><strong id="repIndMontoTotal" class="text-xl text-emerald-900"></strong></div>
-            </div>
-        </div>
-
-        <div id="areaReporteGeneral" class="p-10 space-y-6 text-slate-800 bg-white">
-            <div class="flex justify-between items-start border-b-2 border-slate-900 pb-4">
-                <div>
-                    <h2 class="text-2xl font-black text-slate-900 uppercase tracking-tight">TALLER RAFAEL'S</h2>
-                    <p id="tituloReporteGeneralPdf" class="text-xs text-gray-500 font-medium">Reporte Semanal General de los Trabajadores</p>
-                </div>
-                <div class="text-right text-xs text-gray-400">
-                    <p>Fecha Emisión: 19/05/2026</p>
-                </div>
-            </div>
-            <table class="w-full text-left text-xs border border-gray-100 rounded-lg overflow-hidden">
-                <thead class="bg-slate-900 text-white uppercase font-bold">
-                    <tr>
-                        <th class="p-3 text-center">#</th>
-                        <th class="p-3">Apellidos y Nombres</th>
-                        <th class="p-3">Área Asignada</th>
-                        <th class="p-3 text-center">Horas Semanales</th>
-                        <th class="p-3 text-right">Pago Semanal Total</th>
-                    </tr>
-                </thead>
-                <tbody id="tablaGeneralPdfBody"></tbody>
-            </table>
-        </div>
-    </div>
-
-    <script>
-        const API_URL = "http://localhost:3000/api/trabajadores";
-        const FACTOR_HORAS_SEMANALES = 62; // Factor usado para calcular el precio por hora de forma automática
+    <div id="config-view" class="section">
+        <h2>Panel de Configuración</h2>
         
-        let trabajadores = [];
-        let indexSeleccionado = null;
+        <form id="config-form">
+            <div class="profile-pic-container">
+                <img src="image.png" alt="Nuevo Perfil" id="config-profile-pic-preview" class="profile-pic" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+                <div style="display:none; width:96px; height:96px; border-radius:50%; background-color:#374151; color:white; justify-content:center; align-items:center; font-size:2rem;">👤</div>
+                <input type="file" id="config-photo-input" class="custom-file-input" accept="image/*">
+                <label for="config-photo-input" class="file-upload-label">Cambiar foto 📷</label>
+            </div>
+            
+            <div class="form-group">
+                <label for="config-username">Nombre de Usuario</label>
+                <input type="text" id="config-username" class="form-control" value="sandra@admin.com" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="config-password">Nueva Contraseña</label>
+                <input type="password" id="config-password" class="form-control" placeholder="Déjalo en blanco para no cambiar">
+                <button type="button" class="toggle-password" data-target="config-password">👁️</button>
+            </div>
+            
+            <div class="form-group">
+                <label for="config-confirm-password">Confirmar Nueva Contraseña</label>
+                <input type="password" id="config-confirm-password" class="form-control" placeholder="••••••••">
+                <button type="button" class="toggle-password" data-target="config-confirm-password">👁️</button>
+            </div>
 
-        document.addEventListener("DOMContentLoaded", () => {
-            evaluarEstadoLaboral();
-            cargarTrabajadoresDesdeBackend();
-            setInterval(evaluarEstadoLaboral, 30000);
+            <div class="error-message" id="config-error"></div>
+            
+            <div class="config-actions">
+                <button type="submit" class="btn-primary">Guardar Cambios</button>
+                <button type="button" id="config-exit" class="btn-primary btn-secondary">Salir sin Guardar</button>
+            </div>
+        </form>
+    </div>
 
-            // Escuchar el input de sueldo base en el formulario para pre-calcular el precio por hora
-            document.getElementById("formSueldo").addEventListener("input", function() {
-                const sueldoVal = parseFloat(this.value);
-                const inputPagoHora = document.getElementById("formPagoHora");
-                if (!isNaN(sueldoVal) && sueldoVal > 0) {
-                    const calculado = sueldoVal / FACTOR_HORAS_SEMANALES;
-                    inputPagoHora.value = calculado.toFixed(2);
-                } else {
-                    inputPagoHora.value = "0.00";
-                }
-            });
+</div>
+
+<script>
+    const CORRECT_USER = 'sandra@admin.com';
+    const CORRECT_PASS = 'Matyleoliam';
+    const CORRECT_PIN = '202611';
+    const MAX_PIN_ATTEMPTS = 3;
+    const LOCKOUT_SECONDS = 15;
+    let pinAttempts = 0;
+    let lockoutInterval;
+
+    const views = {
+        login: document.getElementById('login-view'),
+        pin: document.getElementById('pin-view'),
+        config: document.getElementById('config-view')
+    };
+
+    const loginProfilePic = document.getElementById('login-profile-pic');
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const savedPhoto = localStorage.getItem('profilePicture');
+        if (savedPhoto) {
+            loginProfilePic.src = savedPhoto;
+            document.getElementById('config-profile-pic-preview').src = savedPhoto;
+        }
+    });
+
+    function showView(viewId) {
+        Object.values(views).forEach(view => view.classList.remove('active'));
+        views[viewId].classList.add('active');
+    }
+
+    document.querySelectorAll('.toggle-password').forEach(button => {
+        button.addEventListener('click', () => {
+            const targetId = button.getAttribute('data-target');
+            const targetInput = document.getElementById(targetId);
+            const type = targetInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            targetInput.setAttribute('type', type);
+            button.textContent = type === 'password' ? '👁️' : '🙈';
         });
+    });
 
-        // Formatea horas decimales/enteras al formato '00horas y 00minutos'
-        function formatearHorasYMinutos(horasTotales) {
-            const horasEnteras = Math.floor(horasTotales);
-            const minutosCalculados = Math.round((horasTotales - horasEnteras) * 60);
-            
-            const strHoras = String(horasEnteras).padStart(2, '0');
-            const strMinutos = String(minutosCalculados).padStart(2, '0');
-            return `${strHoras}horas y ${strMinutos}minutos`;
+    document.getElementById('login-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const email = document.getElementById('login-email').value;
+        const pass = document.getElementById('login-password').value;
+        const errorMsg = document.getElementById('login-error');
+
+        if (email === CORRECT_USER && pass === CORRECT_PASS) {
+            errorMsg.style.display = 'none';
+            // MOSTRAR BIENVENIDA
+            const overlay = document.getElementById('welcome-overlay');
+            overlay.style.display = 'flex';
+            setTimeout(() => {
+                window.location.href = 'dashboard.html';
+            }, 2000);
+        } else {
+            errorMsg.style.display = 'block';
+            loginProfilePic.style.borderColor = 'var(--error-color)';
+            setTimeout(() => loginProfilePic.style.borderColor = 'var(--primary-color)', 2000);
         }
+    });
 
-        function evaluarEstadoLaboral() {
-            const ahora = new Date();
-            const horaActual = ahora.getHours();
-            const btnEstado = document.getElementById("estadoLaboral");
-            const indicadorMini = document.getElementById("indicadorMini");
+    document.getElementById('goto-pin').addEventListener('click', (e) => {
+        e.preventDefault();
+        showView('pin');
+    });
 
-            if (horaActual >= 5 && horaActual < 23) {
-                btnEstado.className = "bg-green-600 text-white text-xs sm:text-sm font-semibold px-4 py-2.5 rounded-xl flex items-center gap-2 shadow-md shadow-green-600/10 cursor-default pointer-events-none";
-                btnEstado.innerHTML = `<i class="fa-solid fa-circle-check"></i> Laborando`;
-                indicadorMini.className = "absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 border-2 border-white rounded-full";
+    document.getElementById('pin-back-to-login').addEventListener('click', (e) => {
+        e.preventDefault();
+        showView('login');
+        pinAttempts = 0;
+        document.getElementById('pin-form').reset();
+        document.getElementById('pin-error').style.display = 'none';
+    });
+
+    document.getElementById('pin-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+        if (pinAttempts >= MAX_PIN_ATTEMPTS) return;
+
+        const pinInput = document.getElementById('security-pin');
+        const pinError = document.getElementById('pin-error');
+        const pinSubmitBtn = document.getElementById('pin-submit-btn');
+        const pinBlocker = document.getElementById('pin-blocker');
+        const countdownEl = document.getElementById('countdown');
+
+        if (pinInput.value === CORRECT_PIN) {
+            pinAttempts = 0;
+            pinError.style.display = 'none';
+            pinInput.value = '';
+            showView('config');
+        } else {
+            pinAttempts++;
+            if (pinAttempts < MAX_PIN_ATTEMPTS) {
+                const attemptsLeft = MAX_PIN_ATTEMPTS - pinAttempts;
+                pinError.textContent = `PIN incorrecto. Te quedan ${attemptsLeft} oportunidades.`;
+                pinError.style.display = 'block';
+                pinInput.focus();
             } else {
-                btnEstado.className = "bg-red-600 text-white text-xs sm:text-sm font-semibold px-4 py-2.5 rounded-xl flex items-center gap-2 shadow-md shadow-red-600/10 cursor-default pointer-events-none";
-                btnEstado.innerHTML = `<i class="fa-solid fa-lock"></i> No Laborando`;
-                indicadorMini.className = "absolute bottom-0 right-0 w-3.5 h-3.5 bg-red-500 border-2 border-white rounded-full";
+                pinError.style.display = 'none';
+                pinBlocker.style.display = 'block';
+                pinSubmitBtn.style.display = 'none';
+                pinInput.disabled = true;
+
+                let secondsLeft = LOCKOUT_SECONDS;
+                countdownEl.textContent = secondsLeft;
+
+                lockoutInterval = setInterval(() => {
+                    secondsLeft--;
+                    countdownEl.textContent = secondsLeft;
+                    if (secondsLeft <= 0) {
+                        clearInterval(lockoutInterval);
+                        pinAttempts = 0;
+                        pinBlocker.style.display = 'none';
+                        pinSubmitBtn.style.display = 'block';
+                        pinInput.disabled = false;
+                        pinInput.focus();
+                        pinInput.value = '';
+                    }
+                }, 1000);
             }
         }
+    });
 
-        function toggleModal(modalId) {
-            const modal = document.getElementById(modalId);
-            if(modal) modal.classList.toggle('hidden');
-        }
-
-        async function cargarTrabajadoresDesdeBackend() {
-            try {
-                const response = await fetch(API_URL);
-                if (response.ok) {
-                    trabajadores = await response.json();
-                    renderizarTabla();
-                } else {
-                    console.error("Error al obtener datos del servidor");
-                }
-            } catch (error) {
-                console.error("Error de red o conexión al servidor:", error);
+    document.getElementById('config-photo-input').addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                document.getElementById('config-profile-pic-preview').src = event.target.result;
             }
+            reader.readAsDataURL(file);
+        }
+    });
+
+    document.getElementById('config-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const username = document.getElementById('config-username').value;
+        const pass1 = document.getElementById('config-password').value;
+        const pass2 = document.getElementById('config-confirm-password').value;
+        const errorMsg = document.getElementById('config-error');
+        const newPhotoUrl = document.getElementById('config-profile-pic-preview').src;
+
+        if (pass1 && pass1 !== pass2) {
+            errorMsg.textContent = 'Las contraseñas nuevas no coinciden.';
+            errorMsg.style.display = 'block';
+            return;
         }
 
-        // Renderizado dinámico de la tabla y cálculos en tiempo real
-        function renderizarTabla() {
-            const tbody = document.getElementById("tablaTrabajadores");
-            const buscador = document.getElementById("buscador").value.toLowerCase();
-            tbody.innerHTML = "";
-            
-            let activos = 0;
-            trabajadores.forEach((t, index) => {
-                const nombreCompleto = `${t.apellidos}, ${t.nombres}`;
-                if (buscador && !nombreCompleto.toLowerCase().includes(buscador) && !t.dni.includes(buscador)) return;
-
-                activos++;
-
-                // LÓGICA DE CÁLCULO SOLICITADA:
-                const sueldoBaseNum = parseFloat(t.sueldo_base) || 0;
-                const horasNum = parseFloat(t.horas) || 0; // Cambiado a Float para admitir cualquier cantidad exacta de horas
-                
-                // Calcula el pago por hora exacto
-                const pagoHoraCalculado = sueldoBaseNum / FACTOR_HORAS_SEMANALES;
-                
-                // MULTIPLICACIÓN DINÁMICA: Las horas acumuladas van aumentando y se multiplican por su pago por hora
-                const gananciaSemanalAcumulada = pagoHoraCalculado * horasNum;
-
-                let badgeColor = t.area_trabajo === 'maquinista' ? 'bg-purple-50 text-purple-700' : t.area_trabajo === 'manual' ? 'bg-amber-50 text-amber-700' : 'bg-blue-50 text-blue-700';
-
-                tbody.innerHTML += `
-                    <tr class="hover:bg-gray-50/70 transition-colors">
-                        <td class="py-4 px-6 text-center font-medium text-gray-400">${activos}</td>
-                        <td class="py-4 px-6 font-semibold text-gray-900">${nombreCompleto}</td>
-                        <td class="py-4 px-6 text-gray-600">${t.dni}</td>
-                        <td class="py-4 px-6 text-gray-600">${t.telefono}</td>
-                        <td class="py-4 px-6">
-                            <span class="${badgeColor} text-xs px-2.5 py-1 rounded-lg font-semibold capitalize">${t.area_trabajo}</span>
-                        </td>
-                        <td class="py-4 px-6 text-right text-gray-600 font-medium">S/. ${sueldoBaseNum.toFixed(2)}</td>
-                        
-                        <td class="py-4 px-6 text-center font-bold text-blue-600">${horasNum} hrs</td>
-                        
-                        <td class="py-4 px-6 text-right text-gray-600 font-medium">S/. ${pagoHoraCalculado.toFixed(2)}</td>
-                        
-                        <td class="py-4 px-6 text-right font-bold text-emerald-600 bg-emerald-50/30">S/. ${gananciaSemanalAcumulada.toFixed(2)}</td>
-                        
-                        <td class="py-4 px-6">
-                            <div class="flex items-center justify-center gap-2">
-                                <button onclick="abrirModalPago(${index})" class="p-2 bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white rounded-lg transition-all" title="Efectuar Pago y Restar de Planilla">
-                                    <i class="fa-solid fa-circle-check text-base"></i>
-                                </button>
-                                <button onclick="prepararFormulario('editar', ${index})" class="p-2 bg-amber-50 text-amber-600 hover:bg-amber-600 hover:text-white rounded-lg transition-all" title="Editar Trabajador">
-                                    <i class="fa-solid fa-pen-to-square text-base"></i>
-                                </button>
-                                <button onclick="descargarReporteIndividual(${index})" class="p-2 bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white rounded-lg transition-all" title="Descargar Boleta PDF">
-                                    <i class="fa-solid fa-file-arrow-down text-base"></i>
-                                </button>
-                                <button onclick="abrirModalDespido(${index})" class="p-2 bg-red-50 text-red-600 hover:bg-red-600 hover:text-white rounded-lg transition-all" title="Despedir">
-                                    <i class="fa-solid fa-trash-can text-base"></i>
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
-                `;
-            });
-
-            document.getElementById("contadorActivos").innerText = `${activos} Activos`;
+        if (newPhotoUrl.startsWith('data:image')) {
+            localStorage.setItem('profilePicture', newPhotoUrl);
+            loginProfilePic.src = newPhotoUrl;
         }
+        if (username !== CORRECT_USER) localStorage.setItem('changedUsername', username);
+        if (pass1) localStorage.setItem('changedPassword', pass1);
 
-        function filtrarTrabajadores() { 
-            renderizarTabla();
+        alert('Cambios guardados con éxito.');
+        showView('login');
+        e.target.reset();
+    });
+
+    document.getElementById('config-exit').addEventListener('click', () => {
+        showView('login');
+        const savedPhoto = localStorage.getItem('profilePicture');
+        if (savedPhoto) {
+            document.getElementById('config-profile-pic-preview').src = savedPhoto;
         }
-
-        function prepararFormulario(accion, index = null) {
-            document.getElementById("formTrabajador").reset();
-            const inputPagoHora = document.getElementById("formPagoHora");
-
-            if(accion === 'crear') {
-                document.getElementById("tituloModalTrabajador").innerHTML = `<i class="fa-solid fa-user-plus text-blue-500"></i> Añadir Nuevo Trabajador`;
-                document.getElementById("btnGuardarTrabajador").innerText = "Añadir Trabajador";
-                document.getElementById("formId").value = "";
-                inputPagoHora.value = "0.00";
-            } else {
-                document.getElementById("tituloModalTrabajador").innerHTML = `<i class="fa-solid fa-user-pen text-amber-500"></i> Editar Datos del Trabajador`;
-                document.getElementById("btnGuardarTrabajador").innerText = "Guardar Cambios";
-                
-                const t = trabajadores[index];
-                document.getElementById("formId").value = t.id; 
-                document.getElementById("formNombres").value = t.nombres;
-                document.getElementById("formApellidos").value = t.apellidos;
-                document.getElementById("formDni").value = t.dni;
-                document.getElementById("formTelefono").value = t.telefono;
-                document.getElementById("formArea").value = t.area_trabajo;
-                document.getElementById("formSueldo").value = t.sueldo_base;
-                
-                const sueldoBaseNum = parseFloat(t.sueldo_base) || 0;
-                const calculoInicial = sueldoBaseNum / FACTOR_HORAS_SEMANALES;
-                inputPagoHora.value = calculoInicial.toFixed(2);
-            }
-            toggleModal('modalTrabajador');
-        }
-
-        async function guardarTrabajador(e) {
-            e.preventDefault();
-            const id = document.getElementById("formId").value;
-            const sueldoNum = parseFloat(document.getElementById("formSueldo").value);
-
-            const datos = {
-                nombres: document.getElementById("formNombres").value,
-                apellidos: document.getElementById("formApellidos").value,
-                dni: document.getElementById("formDni").value,
-                telefono: document.getElementById("formTelefono").value,
-                area_trabajo: document.getElementById("formArea").value,
-                sueldo_base: sueldoNum
-            };
-
-            const url = id ? `${API_URL}/${id}` : API_URL;
-            const metodo = id ? "PUT" : "POST";
-
-            try {
-                const response = await fetch(url, {
-                    method: metodo,
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(datos)
-                });
-
-                if(response.ok) {
-                    toggleModal('modalTrabajador');
-                    cargarTrabajadoresDesdeBackend(); 
-                } else {
-                    alert("Error en el servidor al intentar guardar los cambios.");
-                }
-            } catch (error) {
-                console.error("Error al guardar trabajador:", error);
-            }
-        }
-
-        function abrirModalPago(index) {
-            indexSeleccionado = index;
-            const t = trabajadores[index];
-            const sueldoBaseNum = parseFloat(t.sueldo_base) || 0;
-            const horasNum = parseFloat(t.horas) || 0;
-            const pagoHoraCalculado = sueldoBaseNum / FACTOR_HORAS_SEMANALES;
-            const gananciaSemanalAcumulada = pagoHoraCalculado * horasNum;
-
-            document.getElementById("montoDescuentoTexto").innerHTML = `Se descontará un monto total de <strong>S/. ${gananciaSemanalAcumulada.toFixed(2)}</strong> del cuadro de Planilla Global disponible y se reiniciarán los haberes de <strong>${t.apellidos}, ${t.nombres}</strong> a cero.`;
-            toggleModal('modalConfirmarPago');
-        }
-
-        async function procesarPagoExitosa() {
-            const t = trabajadores[indexSeleccionado];
-            const sueldoBaseNum = parseFloat(t.sueldo_base) || 0;
-            const horasNum = parseFloat(t.horas) || 0;
-            const pagoHoraCalculado = sueldoBaseNum / FACTOR_HORAS_SEMANALES;
-            const gananciaSemanalAcumulada = pagoHoraCalculado * horasNum;
-
-            const inputPlanillaGlobal = document.getElementById("planillaGlobal");
-            let planillaDisponible = parseFloat(inputPlanillaGlobal.value) || 0;
-            planillaDisponible = planillaDisponible - gananciaSemanalAcumulada;
-            if (planillaDisponible < 0) planillaDisponible = 0;
-            
-            inputPlanillaGlobal.value = planillaDisponible.toFixed(2);
-
-            try {
-                const datosActualizados = {
-                    nombres: t.nombres,
-                    apellidos: t.apellidos,
-                    dni: t.dni,
-                    telefono: t.telefono,
-                    area_trabajo: t.area_trabajo,
-                    sueldo_base: parseFloat(t.sueldo_base),
-                    horas: 0 // Reinicia las horas acumuladas a 0 tras pagarle
-                };
-
-                const response = await fetch(`${API_URL}/${t.id}`, {
-                    method: "PUT",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(datosActualizados)
-                });
-
-                if (response.ok) {
-                    toggleModal('modalConfirmarPago');
-                    cargarTrabajadoresDesdeBackend();
-                } else {
-                    alert("No se pudo procesar el reinicio de horas en la base de datos.");
-                }
-            } catch (error) {
-                console.error("Error al procesar pago:", error);
-            }
-        }
-
-        function abrirModalDespido(index) {
-            indexSeleccionado = index;
-            const t = trabajadores[index];
-            document.getElementById("nombreTrabajadorDespido").innerText = `${t.apellidos}, ${t.nombres}`;
-            toggleModal('modalEliminarTrabajador');
-        }
-
-        async function confirmarDespido() {
-            const t = trabajadores[indexSeleccionado];
-            try {
-                const response = await fetch(`${API_URL}/${t.id}`, {
-                    method: "DELETE"
-                });
-                if (response.ok) {
-                    toggleModal('modalEliminarTrabajador');
-                    cargarTrabajadoresDesdeBackend();
-                } else {
-                    alert("Error al intentar eliminar el registro de la base de datos.");
-                }
-            } catch (error) {
-                console.error("Error al eliminar trabajador:", error);
-            }
-        }
-
-        function descargarReporteIndividual(index) {
-            const t = trabajadores[index];
-            const sueldoBaseNum = parseFloat(t.sueldo_base) || 0;
-            const horasNum = parseFloat(t.horas) || 0;
-            const pagoHoraCalculado = sueldoBaseNum / FACTOR_HORAS_SEMANALES;
-            const montoCalculado = horasNum * pagoHoraCalculado;
-
-            const formatoHorasTexto = formatearHorasYMinutos(horasNum);
-            document.getElementById("repIndNombre").innerText = `${t.apellidos}, ${t.nombres}`;
-            document.getElementById("repIndDni").innerText = t.dni;
-            document.getElementById("repIndTelefono").innerText = t.telefono ? t.telefono : "---";
-            document.getElementById("repIndArea").innerText = t.area_trabajo;
-            document.getElementById("repIndSueldo").innerText = `S/. ${sueldoBaseNum.toFixed(2)}`;
-            document.getElementById("repIndPagoHora").innerText = `S/. ${pagoHoraCalculado.toFixed(2)}`;
-            
-            document.getElementById("repIndTotalHoras").innerText = formatoHorasTexto;
-            document.getElementById("repIndMontoTotal").innerText = `S/. ${montoCalculado.toFixed(2)}`;
-
-            const tablaCuerpo = document.getElementById("repIndTablaCuerpo");
-            tablaCuerpo.innerHTML = ""; // Se limpia antes de renderizar el PDF individual
-
-            const elemento = document.getElementById("areaReporteIndividual");
-            const opciones = {
-                margin: 0.5,
-                filename: `Reporte_Individual_${t.dni}.pdf`,
-                image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2, useCORS: true },
-                jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
-            };
-            html2pdf().set(opciones).from(elemento).save();
-        }
-
-        function abrirReporteGeneral() {
-            const tbodyPdf = document.getElementById("tablaGeneralPdfBody");
-            tbodyPdf.innerHTML = "";
-
-            let contador = 0;
-            trabajadores.forEach((t) => {
-                contador++;
-                const sueldoBaseNum = parseFloat(t.sueldo_base) || 0;
-                const horasNum = parseFloat(t.horas) || 0;
-                const pagoHoraCalculado = sueldoBaseNum / FACTOR_HORAS_SEMANALES;
-                const pagoSemanal = horasNum * pagoHoraCalculado;
-                
-                const formatoHorasTextoGeneral = formatearHorasYMinutos(horasNum);
-
-                tbodyPdf.innerHTML += `
-                    <tr class="border-b border-gray-200">
-                        <td class="p-3 text-center text-gray-500">${contador}</td>
-                        <td class="p-3 font-semibold text-gray-900">${t.apellidos}, ${t.nombres}</td>
-                        <td class="p-3 capitalize">${t.area_trabajo}</td>
-                        <td class="p-3 text-center font-bold text-blue-600">${formatoHorasTextoGeneral}</td>
-                        <td class="p-3 text-right font-bold text-emerald-700">S/. ${pagoSemanal.toFixed(2)}</td>
-                    </tr>
-                `;
-            });
-
-            if(contador === 0) {
-                tbodyPdf.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-gray-400">Sin trabajadores registrados en el sistema</td></tr>`;
-            }
-
-            const elemento = document.getElementById("areaReporteGeneral");
-            const opciones = {
-                margin: 0.5,
-                filename: `Reporte_Semanal_General.pdf`,
-                image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2 },
-                jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
-            };
-            html2pdf().set(opciones).from(elemento).save();
-        }
-    </script>
+    });
+</script>
 </body>
 </html>
