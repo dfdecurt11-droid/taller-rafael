@@ -9,7 +9,242 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
-        body { font-family: 'Inter', sans-serif; }
+        /* CSS GLOBAL Y DE DISEÑO PROFESIONAL */
+        :root {
+            --primary-color: #3b82f6; 
+            --bg-color: #111827; 
+            --form-bg: #1f2937; 
+            --text-color: #f3f4f6;
+            --text-muted: #9ca3af;
+            --border-color: #374151;
+            --error-color: #ef4444;
+            --success-color: #10b981;
+            --font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        /* Estilo del mensaje de bienvenida (NUEVO) */
+        #welcome-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(17, 24, 39, 0.95);
+            display: none; /* Oculto por defecto */
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            text-align: center;
+        }
+        .welcome-box h2 { color: var(--success-color); font-size: 2rem; margin-bottom: 1rem; }
+        .welcome-box p { color: var(--text-color); font-size: 1.2rem; }
+
+        #main-container {
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .section {
+            display: none;
+            background-color: var(--form-bg);
+            padding: 2.5rem;
+            border-radius: 1rem;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            border: 1px solid var(--border-color);
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        h1, h2 {
+            text-align: center;
+            margin-bottom: 1.5rem;
+            color: var(--text-color);
+        }
+
+        .profile-pic-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+            position: relative;
+        }
+
+        .profile-pic {
+            width: 96px;
+            height: 96px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid var(--primary-color);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            background-color: #ccc;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+            position: relative;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            border: 1px solid var(--border-color);
+            background-color: transparent;
+            color: var(--text-color);
+            font-size: 1rem;
+            transition: border-color 0.2s;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        .toggle-password {
+            position: absolute;
+            right: 1rem;
+            top: 2.3rem;
+            cursor: pointer;
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 1.2rem;
+        }
+
+        .toggle-password:hover {
+            color: var(--text-color);
+        }
+
+        .btn-primary {
+            width: 100%;
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            border: none;
+            background-color: var(--primary-color);
+            color: white;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .btn-primary:hover {
+            background-color: #2563eb;
+        }
+
+        .btn-secondary {
+            background-color: #4b5563;
+        }
+        .btn-secondary:hover {
+            background-color: #374151;
+        }
+
+        .form-footer {
+            margin-top: 1.5rem;
+            text-align: center;
+        }
+
+        .form-footer a {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+
+        .error-message {
+            color: var(--error-color);
+            font-size: 0.9rem;
+            text-align: center;
+            margin-top: -0.5rem;
+            margin-bottom: 1rem;
+            display: none;
+        }
+
+        #pin-view.active {
+            display: flex !important;
+            justify-content: center;
+            align-items: center;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.8);
+            z-index: 1000;
+        }
+
+        #pin-content {
+            background-color: var(--form-bg);
+            padding: 2.5rem;
+            border-radius: 1rem;
+            width: 90%;
+            max-width: 350px;
+            text-align: center;
+            position: relative;
+        }
+
+        #pin-blocker {
+            display: none;
+            color: var(--error-color);
+            margin-top: 1rem;
+        }
+
+        .custom-file-input {
+            display: none;
+        }
+        .file-upload-label {
+            display: block;
+            margin-top: 0.5rem;
+            text-align: center;
+            cursor: pointer;
+            color: var(--primary-color);
+            font-size: 0.9rem;
+        }
+
+        .config-actions {
+            margin-top: 1.5rem;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        @media (max-width: 480px) {
+            .section {
+                padding: 1.5rem;
+            }
+            .profile-pic {
+                width: 72px;
+                height: 72px;
+            }
+            .config-actions {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
 </head>
 <body class="bg-gray-50 text-gray-800 antialiased min-h-screen flex flex-col md:flex-row">
@@ -193,6 +428,10 @@
         </div>
     </div>
 
+<<<<<<<<< Temporary merge branch 1
+    <div id="config-view" class="section">
+        <h2>Panel de Configuración</h2>
+=========
     <div id="modalEliminarTrabajador" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
         <div class="bg-white w-full max-w-md rounded-2xl shadow-2xl border border-gray-100 overflow-hidden p-6 text-center">
             <div class="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center text-3xl mx-auto mb-4 border border-red-200">
@@ -275,170 +514,102 @@
     <script>
         const API_URL = "http://localhost:3000/api/trabajadores";
         const FACTOR_HORAS_SEMANALES = 62; // Factor usado para calcular el precio por hora de forma automática
+>>>>>>>>> Temporary merge branch 2
         
-        let trabajadores = [];
-        let indexSeleccionado = null;
+        <form id="config-form">
+            <div class="profile-pic-container">
+                <img src="image.png" alt="Nuevo Perfil" id="config-profile-pic-preview" class="profile-pic" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+                <div style="display:none; width:96px; height:96px; border-radius:50%; background-color:#374151; color:white; justify-content:center; align-items:center; font-size:2rem;">👤</div>
+                <input type="file" id="config-photo-input" class="custom-file-input" accept="image/*">
+                <label for="config-photo-input" class="file-upload-label">Cambiar foto 📷</label>
+            </div>
+            
+            <div class="form-group">
+                <label for="config-username">Nombre de Usuario</label>
+                <input type="text" id="config-username" class="form-control" value="sandra@admin.com" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="config-password">Nueva Contraseña</label>
+                <input type="password" id="config-password" class="form-control" placeholder="Déjalo en blanco para no cambiar">
+                <button type="button" class="toggle-password" data-target="config-password">👁️</button>
+            </div>
+            
+            <div class="form-group">
+                <label for="config-confirm-password">Confirmar Nueva Contraseña</label>
+                <input type="password" id="config-confirm-password" class="form-control" placeholder="••••••••">
+                <button type="button" class="toggle-password" data-target="config-confirm-password">👁️</button>
+            </div>
 
-        document.addEventListener("DOMContentLoaded", () => {
-            evaluarEstadoLaboral();
-            cargarTrabajadoresDesdeBackend();
-            setInterval(evaluarEstadoLaboral, 30000);
+            <div class="error-message" id="config-error"></div>
+            
+            <div class="config-actions">
+                <button type="submit" class="btn-primary">Guardar Cambios</button>
+                <button type="button" id="config-exit" class="btn-primary btn-secondary">Salir sin Guardar</button>
+            </div>
+        </form>
+    </div>
 
-            // Escuchar el input de sueldo base en el formulario para pre-calcular el precio por hora
-            document.getElementById("formSueldo").addEventListener("input", function() {
-                const sueldoVal = parseFloat(this.value);
-                const inputPagoHora = document.getElementById("formPagoHora");
-                if (!isNaN(sueldoVal) && sueldoVal > 0) {
-                    const calculado = sueldoVal / FACTOR_HORAS_SEMANALES;
-                    inputPagoHora.value = calculado.toFixed(2);
-                } else {
-                    inputPagoHora.value = "0.00";
-                }
-            });
+</div>
+
+<script>
+    const CORRECT_USER = 'sandra@admin.com';
+    const CORRECT_PASS = 'Matyleoliam';
+    const CORRECT_PIN = '202611';
+    const MAX_PIN_ATTEMPTS = 3;
+    const LOCKOUT_SECONDS = 15;
+    let pinAttempts = 0;
+    let lockoutInterval;
+
+    const views = {
+        login: document.getElementById('login-view'),
+        pin: document.getElementById('pin-view'),
+        config: document.getElementById('config-view')
+    };
+
+    const loginProfilePic = document.getElementById('login-profile-pic');
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const savedPhoto = localStorage.getItem('profilePicture');
+        if (savedPhoto) {
+            loginProfilePic.src = savedPhoto;
+            document.getElementById('config-profile-pic-preview').src = savedPhoto;
+        }
+    });
+
+    function showView(viewId) {
+        Object.values(views).forEach(view => view.classList.remove('active'));
+        views[viewId].classList.add('active');
+    }
+
+    document.querySelectorAll('.toggle-password').forEach(button => {
+        button.addEventListener('click', () => {
+            const targetId = button.getAttribute('data-target');
+            const targetInput = document.getElementById(targetId);
+            const type = targetInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            targetInput.setAttribute('type', type);
+            button.textContent = type === 'password' ? '👁️' : '🙈';
         });
+    });
 
-        // Formatea horas decimales/enteras al formato '00horas y 00minutos'
-        function formatearHorasYMinutos(horasTotales) {
-            const horasEnteras = Math.floor(horasTotales);
-            const minutosCalculados = Math.round((horasTotales - horasEnteras) * 60);
-            
-            const strHoras = String(horasEnteras).padStart(2, '0');
-            const strMinutos = String(minutosCalculados).padStart(2, '0');
-            return `${strHoras}horas y ${strMinutos}minutos`;
-        }
+    document.getElementById('login-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const email = document.getElementById('login-email').value;
+        const pass = document.getElementById('login-password').value;
+        const errorMsg = document.getElementById('login-error');
 
-        function evaluarEstadoLaboral() {
-            const ahora = new Date();
-            const horaActual = ahora.getHours();
-            const btnEstado = document.getElementById("estadoLaboral");
-            const indicadorMini = document.getElementById("indicadorMini");
-
-            if (horaActual >= 5 && horaActual < 23) {
-                btnEstado.className = "bg-green-600 text-white text-xs sm:text-sm font-semibold px-4 py-2.5 rounded-xl flex items-center gap-2 shadow-md shadow-green-600/10 cursor-default pointer-events-none";
-                btnEstado.innerHTML = `<i class="fa-solid fa-circle-check"></i> Laborando`;
-                indicadorMini.className = "absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 border-2 border-white rounded-full";
-            } else {
-                btnEstado.className = "bg-red-600 text-white text-xs sm:text-sm font-semibold px-4 py-2.5 rounded-xl flex items-center gap-2 shadow-md shadow-red-600/10 cursor-default pointer-events-none";
-                btnEstado.innerHTML = `<i class="fa-solid fa-lock"></i> No Laborando`;
-                indicadorMini.className = "absolute bottom-0 right-0 w-3.5 h-3.5 bg-red-500 border-2 border-white rounded-full";
-            }
-        }
-
-        function toggleModal(modalId) {
-            const modal = document.getElementById(modalId);
-            if(modal) modal.classList.toggle('hidden');
-        }
-
-        async function cargarTrabajadoresDesdeBackend() {
-            try {
-                const response = await fetch(API_URL);
-                if (response.ok) {
-                    trabajadores = await response.json();
-                    renderizarTabla();
-                } else {
-                    console.error("Error al obtener datos del servidor");
-                }
-            } catch (error) {
-                console.error("Error de red o conexión al servidor:", error);
-            }
-        }
-
-        // Renderizado dinámico de la tabla y cálculos en tiempo real
-        function renderizarTabla() {
-            const tbody = document.getElementById("tablaTrabajadores");
-            const buscador = document.getElementById("buscador").value.toLowerCase();
-            tbody.innerHTML = "";
-            
-            let activos = 0;
-            trabajadores.forEach((t, index) => {
-                const nombreCompleto = `${t.apellidos}, ${t.nombres}`;
-                if (buscador && !nombreCompleto.toLowerCase().includes(buscador) && !t.dni.includes(buscador)) return;
-
-                activos++;
-
-                // LÓGICA DE CÁLCULO SOLICITADA:
-                const sueldoBaseNum = parseFloat(t.sueldo_base) || 0;
-                const horasNum = parseFloat(t.horas) || 0; // Cambiado a Float para admitir cualquier cantidad exacta de horas
-                
-                // Calcula el pago por hora exacto
-                const pagoHoraCalculado = sueldoBaseNum / FACTOR_HORAS_SEMANALES;
-                
-                // MULTIPLICACIÓN DINÁMICA: Las horas acumuladas van aumentando y se multiplican por su pago por hora
-                const gananciaSemanalAcumulada = pagoHoraCalculado * horasNum;
-
-                let badgeColor = t.area_trabajo === 'maquinista' ? 'bg-purple-50 text-purple-700' : t.area_trabajo === 'manual' ? 'bg-amber-50 text-amber-700' : 'bg-blue-50 text-blue-700';
-
-                tbody.innerHTML += `
-                    <tr class="hover:bg-gray-50/70 transition-colors">
-                        <td class="py-4 px-6 text-center font-medium text-gray-400">${activos}</td>
-                        <td class="py-4 px-6 font-semibold text-gray-900">${nombreCompleto}</td>
-                        <td class="py-4 px-6 text-gray-600">${t.dni}</td>
-                        <td class="py-4 px-6 text-gray-600">${t.telefono}</td>
-                        <td class="py-4 px-6">
-                            <span class="${badgeColor} text-xs px-2.5 py-1 rounded-lg font-semibold capitalize">${t.area_trabajo}</span>
-                        </td>
-                        <td class="py-4 px-6 text-right text-gray-600 font-medium">S/. ${sueldoBaseNum.toFixed(2)}</td>
-                        
-                        <td class="py-4 px-6 text-center font-bold text-blue-600">${horasNum} hrs</td>
-                        
-                        <td class="py-4 px-6 text-right text-gray-600 font-medium">S/. ${pagoHoraCalculado.toFixed(2)}</td>
-                        
-                        <td class="py-4 px-6 text-right font-bold text-emerald-600 bg-emerald-50/30">S/. ${gananciaSemanalAcumulada.toFixed(2)}</td>
-                        
-                        <td class="py-4 px-6">
-                            <div class="flex items-center justify-center gap-2">
-                                <button onclick="abrirModalPago(${index})" class="p-2 bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white rounded-lg transition-all" title="Efectuar Pago y Restar de Planilla">
-                                    <i class="fa-solid fa-circle-check text-base"></i>
-                                </button>
-                                <button onclick="prepararFormulario('editar', ${index})" class="p-2 bg-amber-50 text-amber-600 hover:bg-amber-600 hover:text-white rounded-lg transition-all" title="Editar Trabajador">
-                                    <i class="fa-solid fa-pen-to-square text-base"></i>
-                                </button>
-                                <button onclick="descargarReporteIndividual(${index})" class="p-2 bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white rounded-lg transition-all" title="Descargar Boleta PDF">
-                                    <i class="fa-solid fa-file-arrow-down text-base"></i>
-                                </button>
-                                <button onclick="abrirModalDespido(${index})" class="p-2 bg-red-50 text-red-600 hover:bg-red-600 hover:text-white rounded-lg transition-all" title="Despedir">
-                                    <i class="fa-solid fa-trash-can text-base"></i>
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
-                `;
-            });
-
-            document.getElementById("contadorActivos").innerText = `${activos} Activos`;
-        }
-
-        function filtrarTrabajadores() { 
-            renderizarTabla();
-        }
-
-        function prepararFormulario(accion, index = null) {
-            document.getElementById("formTrabajador").reset();
-            const inputPagoHora = document.getElementById("formPagoHora");
-
-            if(accion === 'crear') {
-                document.getElementById("tituloModalTrabajador").innerHTML = `<i class="fa-solid fa-user-plus text-blue-500"></i> Añadir Nuevo Trabajador`;
-                document.getElementById("btnGuardarTrabajador").innerText = "Añadir Trabajador";
-                document.getElementById("formId").value = "";
-                inputPagoHora.value = "0.00";
-            } else {
-                document.getElementById("tituloModalTrabajador").innerHTML = `<i class="fa-solid fa-user-pen text-amber-500"></i> Editar Datos del Trabajador`;
-                document.getElementById("btnGuardarTrabajador").innerText = "Guardar Cambios";
-                
-                const t = trabajadores[index];
-                document.getElementById("formId").value = t.id; 
-                document.getElementById("formNombres").value = t.nombres;
-                document.getElementById("formApellidos").value = t.apellidos;
-                document.getElementById("formDni").value = t.dni;
-                document.getElementById("formTelefono").value = t.telefono;
-                document.getElementById("formArea").value = t.area_trabajo;
-                document.getElementById("formSueldo").value = t.sueldo_base;
-                
-                const sueldoBaseNum = parseFloat(t.sueldo_base) || 0;
-                const calculoInicial = sueldoBaseNum / FACTOR_HORAS_SEMANALES;
-                inputPagoHora.value = calculoInicial.toFixed(2);
-            }
-            toggleModal('modalTrabajador');
+        if (email === CORRECT_USER && pass === CORRECT_PASS) {
+            errorMsg.style.display = 'none';
+            // MOSTRAR BIENVENIDA
+            const overlay = document.getElementById('welcome-overlay');
+            overlay.style.display = 'flex';
+            setTimeout(() => {
+                window.location.href = 'dashboard.html';
+            }, 2000);
+        } else {
+            errorMsg.style.display = 'block';
+            loginProfilePic.style.borderColor = 'var(--error-color)';
+            setTimeout(() => loginProfilePic.style.borderColor = 'var(--primary-color)', 2000);
         }
 
         async function guardarTrabajador(e) {
