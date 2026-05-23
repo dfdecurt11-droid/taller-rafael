@@ -3,8 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-  <title>TALLER RAFAEL'S - Panel Administrativo</title>
+  <title>TALLER RAFAEL'S - Panel de Control</title>
 
   <!-- Tailwind -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -25,412 +24,365 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
   <style>
-
-    *{
-      margin:0;
-      padding:0;
-      box-sizing:border-box;
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
     }
 
-    body{
-      font-family:'Inter',sans-serif;
-      background:#f1f5f9;
-      color:#0f172a;
+    html {
+      scroll-behavior: smooth;
     }
 
-    .sidebar{
-      width:280px;
-      background:#0f172a;
-      color:white;
-      min-height:100vh;
-      position:fixed;
-      left:0;
-      top:0;
-      padding:25px;
-      overflow-y:auto;
+    body {
+      font-family: "Inter", sans-serif;
+      background: #f8fafc;
     }
 
-    .main{
-      margin-left:280px;
-      padding:30px;
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
     }
 
-    .card{
-      background:white;
-      border-radius:24px;
-      padding:24px;
-      box-shadow:0 4px 20px rgba(0,0,0,0.05);
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 20px;
     }
 
-    .btn{
-      border:none;
-      cursor:pointer;
-      transition:0.3s;
+    .animacion {
+      animation: aparecer 0.3s ease;
     }
 
-    .btn:hover{
-      transform:translateY(-2px);
-    }
-
-    .modal{
-      position:fixed;
-      inset:0;
-      background:rgba(0,0,0,0.6);
-      display:none;
-      justify-content:center;
-      align-items:center;
-      z-index:1000;
-      padding:20px;
-    }
-
-    .modal.active{
-      display:flex;
-    }
-
-    .modal-content{
-      width:100%;
-      max-width:750px;
-      background:white;
-      border-radius:25px;
-      overflow:hidden;
-      animation:show .25s ease;
-    }
-
-    @keyframes show{
-      from{
-        opacity:0;
-        transform:scale(.9);
+    @keyframes aparecer {
+      from {
+        opacity: 0;
+        transform: scale(0.95);
       }
-      to{
-        opacity:1;
-        transform:scale(1);
+      to {
+        opacity: 1;
+        transform: scale(1);
       }
     }
 
-    table{
-      width:100%;
-      border-collapse:collapse;
+    .tabla-responsive {
+      width: 100%;
+      overflow-x: auto;
     }
 
-    th{
-      background:#f8fafc;
-      color:#64748b;
-      font-size:12px;
-      text-transform:uppercase;
-    }
-
-    th,td{
-      padding:16px;
-      text-align:center;
-    }
-
-    tr{
-      border-bottom:1px solid #e2e8f0;
-    }
-
-    input,select{
-      width:100%;
-      padding:14px;
-      border-radius:14px;
-      border:1px solid #cbd5e1;
-      outline:none;
-    }
-
-    input:focus,
-    select:focus{
-      border-color:#2563eb;
-      box-shadow:0 0 0 3px rgba(37,99,235,.2);
-    }
-
-    .grid{
-      display:grid;
-      gap:20px;
-    }
-
-    @media(max-width:900px){
-
-      .sidebar{
-        position:relative;
-        width:100%;
-        min-height:auto;
+    @media (max-width: 768px) {
+      .tabla-responsive table {
+        min-width: 1100px;
       }
-
-      .main{
-        margin-left:0;
-      }
-
     }
 
+    .sidebar-mobile {
+      transform: translateX(-100%);
+      transition: 0.3s ease;
+    }
+
+    .sidebar-mobile.active {
+      transform: translateX(0);
+    }
   </style>
 </head>
 
-<body>
+<body class="text-gray-800">
+
+  <!-- OVERLAY -->
+  <div
+    id="overlay"
+    class="fixed inset-0 bg-black/50 z-40 hidden md:hidden"
+    onclick="cerrarMenu()"
+  ></div>
 
   <!-- SIDEBAR -->
-  <aside class="sidebar">
+  <aside
+    id="sidebar"
+    class="sidebar-mobile md:translate-x-0 fixed md:sticky top-0 left-0 z-50 w-72 h-screen bg-slate-900 text-white flex flex-col justify-between p-5 shadow-2xl"
+  >
+    <div>
 
-    <div class="flex items-center gap-3 mb-10">
+      <!-- LOGO -->
+      <div class="flex items-center justify-between mb-8 border-b border-slate-700 pb-5">
 
-      <div
-        style="
-          width:60px;
-          height:60px;
-          border-radius:18px;
-          background:#2563eb;
-          display:flex;
-          align-items:center;
-          justify-content:center;
-          font-size:25px;
-        "
-      >
-        <i class="fa-solid fa-screwdriver-wrench"></i>
-      </div>
+        <div class="flex items-center gap-3">
+          <div class="bg-blue-600 p-3 rounded-xl">
+            <i class="fa-solid fa-screwdriver-wrench text-xl"></i>
+          </div>
 
-      <div>
-        <h1 style="font-size:22px;font-weight:900;">
-          Taller Rafael's
-        </h1>
+          <div>
+            <h1 class="font-black uppercase tracking-wide text-lg">
+              Taller Rafael's
+            </h1>
 
-        <p style="color:#94a3b8;font-size:13px;">
-          Sistema Administrativo
-        </p>
-      </div>
-
-    </div>
-
-    <div class="space-y-3">
-
-      <button
-        class="btn"
-        style="
-          width:100%;
-          background:#2563eb;
-          color:white;
-          padding:15px;
-          border-radius:16px;
-          font-weight:700;
-        "
-      >
-        <i class="fa-solid fa-chart-pie"></i>
-        Dashboard
-      </button>
-
-    </div>
-
-  </aside>
-
-  <!-- MAIN -->
-  <main class="main">
-
-    <!-- TOP -->
-    <section class="card mb-6">
-
-      <div
-        style="
-          display:flex;
-          justify-content:space-between;
-          align-items:center;
-          flex-wrap:wrap;
-          gap:20px;
-        "
-      >
-
-        <div>
-
-          <h2 style="font-size:32px;font-weight:900;">
-            Panel Administrativo
-          </h2>
-
-          <p style="color:#64748b;margin-top:8px;">
-            Gestión completa de trabajadores
-          </p>
-
+            <span class="text-xs text-slate-400">
+              Sistema de Control
+            </span>
+          </div>
         </div>
 
         <button
-          onclick="abrirModalCrear()"
-          class="btn"
-          style="
-            background:#2563eb;
-            color:white;
-            padding:15px 25px;
-            border-radius:16px;
-            font-weight:800;
-          "
+          class="md:hidden text-white"
+          onclick="cerrarMenu()"
         >
-          <i class="fa-solid fa-plus"></i>
-          Añadir Trabajador
+          <i class="fa-solid fa-xmark text-2xl"></i>
         </button>
-
       </div>
 
+      <!-- MENU -->
+      <nav class="space-y-2">
+
+        <a
+          href="#"
+          class="flex items-center gap-3 bg-blue-600 px-4 py-3 rounded-xl font-semibold"
+        >
+          <i class="fa-solid fa-chart-pie"></i>
+          Dashboard
+        </a>
+
+        <a
+          href="#"
+          class="flex items-center gap-3 hover:bg-slate-800 px-4 py-3 rounded-xl transition"
+        >
+          <i class="fa-solid fa-calendar-check"></i>
+          Asistencia
+        </a>
+
+        <a
+          href="#"
+          class="flex items-center gap-3 text-red-400 hover:bg-red-500/10 px-4 py-3 rounded-xl transition"
+        >
+          <i class="fa-solid fa-right-from-bracket"></i>
+          Salir
+        </a>
+
+      </nav>
+    </div>
+
+    <div class="text-xs text-slate-500 text-center pt-6 border-t border-slate-800">
+      © 2026 Taller Rafael's
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="md:ml-0 min-h-screen flex-1 p-3 sm:p-5 md:p-8">
+
+    <!-- TOPBAR -->
+    <div class="flex items-center justify-between mb-5">
+
+      <button
+        class="md:hidden bg-slate-900 text-white w-11 h-11 rounded-xl"
+        onclick="abrirMenu()"
+      >
+        <i class="fa-solid fa-bars"></i>
+      </button>
+
+      <h2 class="text-xl md:text-2xl font-black text-slate-900">
+        Panel Administrativo
+      </h2>
+
+    </div>
+
+    <!-- HEADER -->
+    <section class="bg-white rounded-3xl shadow-sm border border-gray-100 p-5 mb-6">
+
+      <div class="flex flex-col xl:flex-row gap-5 xl:items-center xl:justify-between">
+
+        <!-- PERFIL -->
+        <div class="flex flex-col sm:flex-row sm:items-center gap-4">
+
+          <div class="relative">
+
+            <img
+              src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=300&auto=format&fit=crop"
+              class="w-20 h-20 rounded-full object-cover border-4 border-white shadow-lg"
+            />
+
+            <div
+              id="indicadorMini"
+              class="absolute bottom-1 right-1 w-4 h-4 rounded-full border-2 border-white bg-green-500"
+            ></div>
+
+          </div>
+
+          <div>
+
+            <h2 class="text-2xl font-black text-slate-900">
+              ¡Bienvenido nuevamente!
+            </h2>
+
+            <p class="text-gray-500 mt-1">
+              Administrador principal del taller
+            </p>
+
+          </div>
+        </div>
+
+        <!-- BOTONES -->
+        <div class="flex flex-col sm:flex-row gap-3">
+
+          <button
+            id="estadoLaboral"
+            class="px-5 py-3 rounded-xl text-white font-semibold"
+          ></button>
+
+          <button
+            onclick="prepararFormulario('crear')"
+            class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-3 rounded-xl font-bold transition shadow-lg"
+          >
+            <i class="fa-solid fa-plus mr-2"></i>
+            Añadir Trabajador
+          </button>
+
+        </div>
+      </div>
     </section>
 
-    <!-- CARDS -->
-    <section
-      class="grid mb-6"
-      style="
-        grid-template-columns:
-        repeat(auto-fit,minmax(250px,1fr));
-      "
-    >
+    <!-- ESTADISTICAS -->
+    <section class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5 mb-6">
 
-      <div class="card">
+      <!-- BUSCADOR -->
+      <div class="bg-white rounded-3xl p-5 shadow-sm border border-gray-100">
 
-        <p style="color:#64748b;font-weight:700;">
-          Trabajadores
-        </p>
+        <label class="text-xs font-bold text-gray-500 uppercase">
+          Buscar trabajador
+        </label>
 
-        <h2
-          id="cantidadTrabajadores"
-          style="
-            font-size:42px;
-            margin-top:10px;
-            font-weight:900;
-          "
-        >
-          0
-        </h2>
+        <div class="relative mt-3">
 
+          <i class="fa-solid fa-magnifying-glass absolute left-4 top-4 text-gray-400"></i>
+
+          <input
+            type="text"
+            id="buscador"
+            oninput="filtrarTrabajadores()"
+            placeholder="Buscar por nombre o DNI"
+            class="w-full pl-11 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+
+        </div>
       </div>
 
-      <div class="card">
+      <!-- PLANILLA -->
+      <div class="bg-amber-50 rounded-3xl p-5 border border-amber-200 shadow-sm">
 
-        <p style="color:#64748b;font-weight:700;">
-          Planilla Total
-        </p>
+        <div class="flex items-center justify-between">
 
-        <h2
-          id="planillaTotal"
-          style="
-            font-size:42px;
-            margin-top:10px;
-            font-weight:900;
-            color:#16a34a;
-          "
-        >
-          S/. 0
-        </h2>
+          <div>
 
+            <p class="text-xs font-black uppercase text-amber-700">
+              Planilla Disponible
+            </p>
+
+            <div class="mt-2 flex items-center gap-2">
+
+              <span class="font-black text-2xl text-amber-900">
+                S/.
+              </span>
+
+              <input
+                type="number"
+                id="planillaGlobal"
+                value="0.00"
+                class="bg-transparent text-2xl font-black outline-none w-40"
+              />
+
+            </div>
+
+          </div>
+
+          <div class="bg-amber-500 text-white p-4 rounded-2xl text-2xl">
+            <i class="fa-solid fa-wallet"></i>
+          </div>
+
+        </div>
       </div>
 
-      <div class="card">
+      <!-- REPORTE -->
+      <div class="bg-white rounded-3xl p-5 border border-gray-100 shadow-sm flex items-center">
 
         <button
-          onclick="generarReporteGeneral()"
-          class="btn"
-          style="
-            width:100%;
-            height:100%;
-            min-height:120px;
-            border-radius:20px;
-            background:#059669;
-            color:white;
-            font-size:18px;
-            font-weight:900;
-          "
+          onclick="abrirReporteGeneral()"
+          class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-4 rounded-2xl font-bold transition"
         >
-          <i class="fa-solid fa-file-pdf"></i>
-          Generar Reporte PDF
+          <i class="fa-solid fa-file-pdf mr-2"></i>
+          Generar Reporte General
         </button>
 
       </div>
-
     </section>
 
     <!-- TABLA -->
-    <section class="card">
+    <section class="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
 
-      <div
-        style="
-          display:flex;
-          justify-content:space-between;
-          align-items:center;
-          flex-wrap:wrap;
-          gap:15px;
-          margin-bottom:20px;
-        "
-      >
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-5 border-b border-gray-100">
 
-        <h3 style="font-size:24px;font-weight:900;">
+        <h3 class="text-xl font-black text-slate-900">
           Nómina de Trabajadores
         </h3>
 
-        <input
-          type="text"
-          id="buscador"
-          placeholder="Buscar trabajador..."
-          oninput="filtrarTrabajadores()"
-          style="max-width:300px;"
-        />
+        <span
+          id="contadorActivos"
+          class="bg-blue-50 text-blue-700 text-sm font-bold px-4 py-2 rounded-full"
+        >
+          0 Activos
+        </span>
 
       </div>
 
-      <div style="overflow-x:auto;">
+      <div class="tabla-responsive">
 
-        <table>
+        <table class="w-full">
 
-          <thead>
+          <thead class="bg-gray-50 text-gray-500 uppercase text-xs">
 
             <tr>
 
-              <th>#</th>
-              <th>Trabajador</th>
-              <th>DNI</th>
-              <th>Teléfono</th>
-              <th>Área</th>
-              <th>Sueldo</th>
-              <th>Acciones</th>
+              <th class="p-4">#</th>
+              <th class="p-4">Trabajador</th>
+              <th class="p-4">DNI</th>
+              <th class="p-4">Teléfono</th>
+              <th class="p-4">Área</th>
+              <th class="p-4">Sueldo</th>
+              <th class="p-4">Horas</th>
+              <th class="p-4">Pago/Hora</th>
+              <th class="p-4">Ganancia</th>
+              <th class="p-4">Acciones</th>
 
             </tr>
 
           </thead>
 
-          <tbody id="tablaTrabajadores"></tbody>
+          <tbody
+            id="tablaTrabajadores"
+            class="divide-y divide-gray-100 text-sm"
+          ></tbody>
 
         </table>
-
       </div>
-
     </section>
-
   </main>
 
   <!-- MODAL -->
-  <div class="modal" id="modalTrabajador">
+  <div
+    id="modalTrabajador"
+    class="fixed inset-0 bg-black/60 z-50 hidden items-center justify-center p-4"
+  >
 
-    <div class="modal-content">
+    <div class="bg-white rounded-3xl w-full max-w-2xl overflow-hidden animacion">
 
       <!-- HEADER -->
-      <div
-        style="
-          background:#0f172a;
-          color:white;
-          padding:25px;
-          display:flex;
-          justify-content:space-between;
-          align-items:center;
-        "
-      >
+      <div class="bg-slate-900 p-5 flex items-center justify-between text-white">
 
-        <h2
-          id="tituloModal"
-          style="font-size:22px;font-weight:900;"
+        <h3
+          id="tituloModalTrabajador"
+          class="font-black text-lg"
         >
           Nuevo Trabajador
-        </h2>
+        </h3>
 
-        <button
-          onclick="cerrarModal()"
-          style="
-            background:none;
-            border:none;
-            color:white;
-            font-size:28px;
-            cursor:pointer;
-          "
-        >
-          ×
+        <button onclick="toggleModal('modalTrabajador')">
+          <i class="fa-solid fa-xmark text-2xl"></i>
         </button>
 
       </div>
@@ -438,221 +390,338 @@
       <!-- FORM -->
       <form
         id="formTrabajador"
-        style="
-          padding:25px;
-          display:grid;
-          grid-template-columns:
-          repeat(auto-fit,minmax(250px,1fr));
-          gap:20px;
-        "
+        onsubmit="guardarTrabajador(event)"
+        class="p-5 grid grid-cols-1 md:grid-cols-2 gap-4"
       >
 
-        <input type="hidden" id="trabajadorId" />
+        <input type="hidden" id="formId" />
 
         <div>
-          <label>Nombres</label>
-          <input type="text" id="nombres" required />
+          <label class="text-sm font-bold">Nombres</label>
+
+          <input
+            type="text"
+            id="formNombres"
+            required
+            class="w-full mt-2 p-3 border border-gray-200 rounded-xl"
+          />
         </div>
 
         <div>
-          <label>Apellidos</label>
-          <input type="text" id="apellidos" required />
+          <label class="text-sm font-bold">Apellidos</label>
+
+          <input
+            type="text"
+            id="formApellidos"
+            required
+            class="w-full mt-2 p-3 border border-gray-200 rounded-xl"
+          />
         </div>
 
         <div>
-          <label>DNI</label>
-          <input type="text" id="dni" maxlength="8" required />
+          <label class="text-sm font-bold">DNI</label>
+
+          <input
+            type="text"
+            id="formDni"
+            maxlength="8"
+            required
+            class="w-full mt-2 p-3 border border-gray-200 rounded-xl"
+          />
         </div>
 
         <div>
-          <label>Teléfono</label>
-          <input type="text" id="telefono" required />
+          <label class="text-sm font-bold">Teléfono</label>
+
+          <input
+            type="text"
+            id="formTelefono"
+            required
+            class="w-full mt-2 p-3 border border-gray-200 rounded-xl"
+          />
         </div>
 
         <div>
-          <label>Área</label>
+          <label class="text-sm font-bold">Área</label>
 
-          <select id="area">
-
-            <option value="maquinista">
-              Maquinista
-            </option>
-
-            <option value="manual">
-              Manual
-            </option>
-
-            <option value="planchador">
-              Planchador
-            </option>
-
+          <select
+            id="formArea"
+            class="w-full mt-2 p-3 border border-gray-200 rounded-xl"
+          >
+            <option value="maquinista">Maquinista</option>
+            <option value="manual">Manual</option>
+            <option value="planchador">Planchador</option>
           </select>
-
         </div>
 
         <div>
-          <label>Sueldo Base</label>
-          <input type="number" id="sueldo" step="0.01" required />
+          <label class="text-sm font-bold">Sueldo Base</label>
+
+          <input
+            type="number"
+            id="formSueldo"
+            required
+            step="0.01"
+            class="w-full mt-2 p-3 border border-gray-200 rounded-xl"
+          />
         </div>
 
-        <div style="grid-column:1/-1;">
+        <div class="md:col-span-2">
+          <label class="text-sm font-bold">Pago por Hora</label>
+
+          <input
+            type="text"
+            id="formPagoHora"
+            readonly
+            class="w-full mt-2 p-3 border border-gray-200 rounded-xl bg-gray-100 font-black text-blue-600"
+          />
+        </div>
+
+        <div class="md:col-span-2 flex justify-end gap-3 pt-4">
+
+          <button
+            type="button"
+            onclick="toggleModal('modalTrabajador')"
+            class="px-5 py-3 rounded-xl border"
+          >
+            Cancelar
+          </button>
 
           <button
             type="submit"
-            class="btn"
-            style="
-              width:100%;
-              background:#2563eb;
-              color:white;
-              padding:16px;
-              border-radius:16px;
-              font-weight:900;
-              font-size:16px;
-            "
+            id="btnGuardarTrabajador"
+            class="px-5 py-3 rounded-xl bg-blue-600 text-white font-bold"
           >
-            Guardar Trabajador
+            Guardar
           </button>
 
         </div>
-
       </form>
-
     </div>
-
   </div>
 
   <script>
-
-    // ============================
-    // API
-    // ============================
     const API_URL =
-      "https://taller-rafael-1.onrender.com/api/trabajadores";
+      "https://taller-rafael.onrender.com/api/trabajadores";
+
+    const FACTOR_HORAS_SEMANALES = 62;
 
     let trabajadores = [];
+    let indexSeleccionado = null;
 
-    // ============================
+    // =========================
     // INICIO
-    // ============================
-    document.addEventListener(
-      "DOMContentLoaded",
-      cargarTrabajadores
-    );
+    // =========================
+    document.addEventListener("DOMContentLoaded", () => {
+      evaluarEstadoLaboral();
+      cargarTrabajadores();
 
-    // ============================
-    // CARGAR TRABAJADORES
-    // ============================
-    async function cargarTrabajadores(){
+      setInterval(evaluarEstadoLaboral, 30000);
 
-      try{
+      document
+        .getElementById("formSueldo")
+        .addEventListener("input", calcularPagoHora);
+    });
 
-        const response =
-          await fetch(API_URL);
+    // =========================
+    // MENU
+    // =========================
+    function abrirMenu() {
+      document
+        .getElementById("sidebar")
+        .classList.add("active");
 
-        trabajadores =
-          await response.json();
+      document
+        .getElementById("overlay")
+        .classList.remove("hidden");
+    }
 
-        renderizarTabla();
+    function cerrarMenu() {
+      document
+        .getElementById("sidebar")
+        .classList.remove("active");
 
-      }catch(error){
+      document
+        .getElementById("overlay")
+        .classList.add("hidden");
+    }
 
-        console.error(error);
+    // =========================
+    // ESTADO LABORAL
+    // =========================
+    function evaluarEstadoLaboral() {
 
-        alert(
-          "Error conectando con el servidor"
-        );
+      const hora = new Date().getHours();
+
+      const estado = document.getElementById("estadoLaboral");
+
+      if (hora >= 5 && hora <= 22) {
+
+        estado.className =
+          "bg-green-600 px-5 py-3 rounded-xl text-white font-bold";
+
+        estado.innerHTML =
+          '<i class="fa-solid fa-circle-check mr-2"></i>Laborando';
+
+      } else {
+
+        estado.className =
+          "bg-red-600 px-5 py-3 rounded-xl text-white font-bold";
+
+        estado.innerHTML =
+          '<i class="fa-solid fa-lock mr-2"></i>No Laborando';
       }
     }
 
-    // ============================
-    // RENDER
-    // ============================
-    function renderizarTabla(){
+    // =========================
+    // MODAL
+    // =========================
+    function toggleModal(id) {
+
+      const modal = document.getElementById(id);
+
+      modal.classList.toggle("hidden");
+
+      modal.classList.toggle("flex");
+    }
+
+    // =========================
+    // CALCULAR PAGO HORA
+    // =========================
+    function calcularPagoHora() {
+
+      const sueldo =
+        parseFloat(document.getElementById("formSueldo").value) || 0;
+
+      const pago = sueldo / FACTOR_HORAS_SEMANALES;
+
+      document.getElementById("formPagoHora").value =
+        pago.toFixed(2);
+    }
+
+    // =========================
+    // CARGAR
+    // =========================
+    async function cargarTrabajadores() {
+
+      try {
+
+        const response = await fetch(API_URL);
+
+        trabajadores = await response.json();
+
+        renderizarTabla();
+
+      } catch (error) {
+
+        console.error(error);
+
+        alert("Error cargando trabajadores");
+      }
+    }
+
+    // =========================
+    // RENDER TABLA
+    // =========================
+    function renderizarTabla() {
 
       const tbody =
-        document.getElementById(
-          "tablaTrabajadores"
-        );
+        document.getElementById("tablaTrabajadores");
 
       tbody.innerHTML = "";
 
-      let total = 0;
+      const buscador =
+        document.getElementById("buscador").value.toLowerCase();
 
-      trabajadores.forEach((t,index)=>{
+      let activos = 0;
 
-        total += parseFloat(t.sueldo_base);
+      trabajadores.forEach((t, index) => {
+
+        const nombre =
+          `${t.apellidos}, ${t.nombres}`;
+
+        if (
+          buscador &&
+          !nombre.toLowerCase().includes(buscador) &&
+          !t.dni.includes(buscador)
+        ) {
+          return;
+        }
+
+        activos++;
+
+        const sueldo =
+          parseFloat(t.sueldo_base) || 0;
+
+        const horas =
+          parseFloat(t.horas) || 0;
+
+        const pagoHora =
+          sueldo / FACTOR_HORAS_SEMANALES;
+
+        const ganancia =
+          pagoHora * horas;
 
         tbody.innerHTML += `
-          <tr>
+          <tr class="hover:bg-gray-50 transition">
 
-            <td>${index + 1}</td>
-
-            <td style="font-weight:700;">
-              ${t.apellidos}, ${t.nombres}
+            <td class="p-4 text-center">
+              ${activos}
             </td>
 
-            <td>${t.dni}</td>
+            <td class="p-4 font-bold">
+              ${nombre}
+            </td>
 
-            <td>${t.telefono}</td>
+            <td class="p-4">
+              ${t.dni}
+            </td>
 
-            <td style="text-transform:capitalize;">
+            <td class="p-4">
+              ${t.telefono}
+            </td>
+
+            <td class="p-4 capitalize">
               ${t.area_trabajo}
             </td>
 
-            <td style="font-weight:800;color:#16a34a;">
-              S/. ${parseFloat(
-                t.sueldo_base
-              ).toFixed(2)}
+            <td class="p-4 font-bold">
+              S/. ${sueldo.toFixed(2)}
             </td>
 
-            <td>
+            <td class="p-4 text-blue-600 font-bold">
+              ${horas} hrs
+            </td>
 
-              <div
-                style="
-                  display:flex;
-                  justify-content:center;
-                  gap:10px;
-                "
-              >
+            <td class="p-4">
+              S/. ${pagoHora.toFixed(2)}
+            </td>
+
+            <td class="p-4 text-emerald-600 font-black">
+              S/. ${ganancia.toFixed(2)}
+            </td>
+
+            <td class="p-4">
+
+              <div class="flex items-center gap-2">
 
                 <button
-                  onclick="editarTrabajador(${index})"
-                  class="btn"
-                  style="
-                    width:45px;
-                    height:45px;
-                    border-radius:14px;
-                    background:#facc15;
-                    color:white;
-                  "
+                  onclick="prepararFormulario('editar', ${index})"
+                  class="bg-amber-100 hover:bg-amber-500 hover:text-white transition w-10 h-10 rounded-xl"
                 >
                   <i class="fa-solid fa-pen"></i>
                 </button>
 
                 <button
-                  onclick="eliminarTrabajador(${t.id})"
-                  class="btn"
-                  style="
-                    width:45px;
-                    height:45px;
-                    border-radius:14px;
-                    background:#ef4444;
-                    color:white;
-                  "
+                  onclick="eliminarTrabajador(${index})"
+                  class="bg-red-100 hover:bg-red-500 hover:text-white transition w-10 h-10 rounded-xl"
                 >
                   <i class="fa-solid fa-trash"></i>
                 </button>
 
                 <button
-                  onclick="generarPDF(${index})"
-                  class="btn"
-                  style="
-                    width:45px;
-                    height:45px;
-                    border-radius:14px;
-                    background:#2563eb;
-                    color:white;
-                  "
+                  onclick="descargarReporteIndividual(${index})"
+                  class="bg-blue-100 hover:bg-blue-500 hover:text-white transition w-10 h-10 rounded-xl"
                 >
                   <i class="fa-solid fa-file-pdf"></i>
                 </button>
@@ -666,392 +735,271 @@
       });
 
       document.getElementById(
-        "cantidadTrabajadores"
-      ).innerText =
-        trabajadores.length;
-
-      document.getElementById(
-        "planillaTotal"
-      ).innerText =
-        "S/. " + total.toFixed(2);
-
+        "contadorActivos"
+      ).innerText = `${activos} Activos`;
     }
 
-    // ============================
+    // =========================
     // FILTRAR
-    // ============================
-    function filtrarTrabajadores(){
+    // =========================
+    function filtrarTrabajadores() {
+      renderizarTabla();
+    }
 
-      const texto =
+    // =========================
+    // FORMULARIO
+    // =========================
+    function prepararFormulario(tipo, index = null) {
+
+      document.getElementById("formTrabajador").reset();
+
+      if (tipo === "crear") {
+
         document.getElementById(
-          "buscador"
-        ).value.toLowerCase();
+          "tituloModalTrabajador"
+        ).innerText = "Añadir Trabajador";
 
-      const filtrados =
-        trabajadores.filter(t=>{
+        document.getElementById(
+          "btnGuardarTrabajador"
+        ).innerText = "Guardar";
 
-          const nombre =
-            `${t.nombres} ${t.apellidos}`
-            .toLowerCase();
+        document.getElementById("formId").value = "";
 
-          return (
-            nombre.includes(texto)
-            ||
-            t.dni.includes(texto)
-          );
+      } else {
 
+        const t = trabajadores[index];
+
+        document.getElementById(
+          "tituloModalTrabajador"
+        ).innerText = "Editar Trabajador";
+
+        document.getElementById(
+          "btnGuardarTrabajador"
+        ).innerText = "Actualizar";
+
+        document.getElementById("formId").value = t.id;
+
+        document.getElementById("formNombres").value =
+          t.nombres;
+
+        document.getElementById("formApellidos").value =
+          t.apellidos;
+
+        document.getElementById("formDni").value =
+          t.dni;
+
+        document.getElementById("formTelefono").value =
+          t.telefono;
+
+        document.getElementById("formArea").value =
+          t.area_trabajo;
+
+        document.getElementById("formSueldo").value =
+          t.sueldo_base;
+
+        calcularPagoHora();
+      }
+
+      toggleModal("modalTrabajador");
+    }
+
+    // =========================
+    // GUARDAR
+    // =========================
+    async function guardarTrabajador(e) {
+
+      e.preventDefault();
+
+      const id =
+        document.getElementById("formId").value;
+
+      const datos = {
+        nombres:
+          document.getElementById("formNombres").value,
+
+        apellidos:
+          document.getElementById("formApellidos").value,
+
+        dni:
+          document.getElementById("formDni").value,
+
+        telefono:
+          document.getElementById("formTelefono").value,
+
+        area_trabajo:
+          document.getElementById("formArea").value,
+
+        sueldo_base:
+          parseFloat(
+            document.getElementById("formSueldo").value
+          )
+      };
+
+      const metodo = id ? "PUT" : "POST";
+
+      const url = id
+        ? `${API_URL}/${id}`
+        : API_URL;
+
+      try {
+
+        const response = await fetch(url, {
+          method: metodo,
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(datos)
         });
 
-      const backup = trabajadores;
+        if (response.ok) {
 
-      trabajadores = filtrados;
-
-      renderizarTabla();
-
-      trabajadores = backup;
-
-    }
-
-    // ============================
-    // MODAL
-    // ============================
-    function abrirModalCrear(){
-
-      document.getElementById(
-        "formTrabajador"
-      ).reset();
-
-      document.getElementById(
-        "trabajadorId"
-      ).value = "";
-
-      document.getElementById(
-        "tituloModal"
-      ).innerText =
-        "Nuevo Trabajador";
-
-      document.getElementById(
-        "modalTrabajador"
-      ).classList.add("active");
-
-    }
-
-    function cerrarModal(){
-
-      document.getElementById(
-        "modalTrabajador"
-      ).classList.remove("active");
-
-    }
-
-    // ============================
-    // EDITAR
-    // ============================
-    function editarTrabajador(index){
-
-      const t = trabajadores[index];
-
-      document.getElementById(
-        "trabajadorId"
-      ).value = t.id;
-
-      document.getElementById(
-        "nombres"
-      ).value = t.nombres;
-
-      document.getElementById(
-        "apellidos"
-      ).value = t.apellidos;
-
-      document.getElementById(
-        "dni"
-      ).value = t.dni;
-
-      document.getElementById(
-        "telefono"
-      ).value = t.telefono;
-
-      document.getElementById(
-        "area"
-      ).value = t.area_trabajo;
-
-      document.getElementById(
-        "sueldo"
-      ).value = t.sueldo_base;
-
-      document.getElementById(
-        "tituloModal"
-      ).innerText =
-        "Editar Trabajador";
-
-      document.getElementById(
-        "modalTrabajador"
-      ).classList.add("active");
-
-    }
-
-    // ============================
-    // GUARDAR
-    // ============================
-    document
-      .getElementById("formTrabajador")
-      .addEventListener(
-        "submit",
-        async function(e){
-
-          e.preventDefault();
-
-          const id =
-            document.getElementById(
-              "trabajadorId"
-            ).value;
-
-          const datos = {
-
-            nombres:
-              document.getElementById(
-                "nombres"
-              ).value,
-
-            apellidos:
-              document.getElementById(
-                "apellidos"
-              ).value,
-
-            dni:
-              document.getElementById(
-                "dni"
-              ).value,
-
-            telefono:
-              document.getElementById(
-                "telefono"
-              ).value,
-
-            area_trabajo:
-              document.getElementById(
-                "area"
-              ).value,
-
-            sueldo_base:
-              document.getElementById(
-                "sueldo"
-              ).value
-
-          };
-
-          try{
-
-            const response =
-              await fetch(
-                id
-                  ? `${API_URL}/${id}`
-                  : API_URL,
-                {
-                  method:
-                    id ? "PUT" : "POST",
-
-                  headers:{
-                    "Content-Type":
-                    "application/json"
-                  },
-
-                  body:
-                    JSON.stringify(datos)
-                }
-              );
-
-            if(response.ok){
-
-              cerrarModal();
-
-              cargarTrabajadores();
-
-            }else{
-
-              alert(
-                "Error guardando trabajador"
-              );
-            }
-
-          }catch(error){
-
-            console.error(error);
-
-          }
-
-        }
-      );
-
-    // ============================
-    // ELIMINAR
-    // ============================
-    async function eliminarTrabajador(id){
-
-      const confirmar =
-        confirm(
-          "¿Deseas eliminar este trabajador?"
-        );
-
-      if(!confirmar) return;
-
-      try{
-
-        const response =
-          await fetch(
-            `${API_URL}/${id}`,
-            {
-              method:"DELETE"
-            }
-          );
-
-        if(response.ok){
+          toggleModal("modalTrabajador");
 
           cargarTrabajadores();
 
-        }else{
+        } else {
 
-          alert(
-            "No se pudo eliminar"
-          );
+          alert("Error guardando trabajador");
         }
 
-      }catch(error){
+      } catch (error) {
 
         console.error(error);
-
       }
-
     }
 
-    // ============================
-    // PDF INDIVIDUAL
-    // ============================
-    function generarPDF(index){
+    // =========================
+    // ELIMINAR
+    // =========================
+    async function eliminarTrabajador(index) {
 
       const t = trabajadores[index];
 
-      const div =
-        document.createElement("div");
+      const confirmar = confirm(
+        `¿Eliminar a ${t.nombres} ${t.apellidos}?`
+      );
 
-      div.innerHTML = `
-        <div
-          style="
-            padding:40px;
-            font-family:Arial;
-          "
-        >
+      if (!confirmar) return;
 
-          <h1>
-            Taller Rafael's
-          </h1>
+      try {
 
+        const response = await fetch(
+          `${API_URL}/${t.id}`,
+          {
+            method: "DELETE"
+          }
+        );
+
+        if (response.ok) {
+
+          cargarTrabajadores();
+
+        } else {
+
+          alert("No se pudo eliminar");
+        }
+
+      } catch (error) {
+
+        console.error(error);
+      }
+    }
+
+    // =========================
+    // PDF
+    // =========================
+    function descargarReporteIndividual(index) {
+
+      const t = trabajadores[index];
+
+      const contenido = `
+        <div style="font-family: Arial; padding:30px;">
+          <h1>TALLER RAFAEL'S</h1>
           <hr>
+          <h2>Boleta del Trabajador</h2>
 
-          <h2>
-            Boleta de Trabajador
-          </h2>
-
-          <p>
-            <strong>Nombre:</strong>
-            ${t.nombres} ${t.apellidos}
-          </p>
-
-          <p>
-            <strong>DNI:</strong>
-            ${t.dni}
-          </p>
-
-          <p>
-            <strong>Área:</strong>
-            ${t.area_trabajo}
-          </p>
-
-          <p>
-            <strong>Teléfono:</strong>
-            ${t.telefono}
-          </p>
-
-          <p>
-            <strong>Sueldo:</strong>
-            S/. ${t.sueldo_base}
-          </p>
-
+          <p><strong>Trabajador:</strong> ${t.apellidos}, ${t.nombres}</p>
+          <p><strong>DNI:</strong> ${t.dni}</p>
+          <p><strong>Área:</strong> ${t.area_trabajo}</p>
+          <p><strong>Horas:</strong> ${t.horas}</p>
+          <p><strong>Sueldo Base:</strong> S/. ${t.sueldo_base}</p>
         </div>
       `;
+
+      const div = document.createElement("div");
+
+      div.innerHTML = contenido;
 
       html2pdf()
         .from(div)
         .set({
-          margin:0.5,
-          filename:`${t.dni}.pdf`,
-          html2canvas:{
-            scale:2
+          margin: 0.5,
+          filename: `Trabajador_${t.dni}.pdf`,
+          image: {
+            type: "jpeg",
+            quality: 0.98
           },
-          jsPDF:{
-            unit:"in",
-            format:"letter",
-            orientation:"portrait"
+          html2canvas: {
+            scale: 2
+          },
+          jsPDF: {
+            unit: "in",
+            format: "letter",
+            orientation: "portrait"
           }
         })
         .save();
-
     }
 
-    // ============================
-    // PDF GENERAL
-    // ============================
-    function generarReporteGeneral(){
+    // =========================
+    // REPORTE GENERAL
+    // =========================
+    function abrirReporteGeneral() {
 
       let html = `
-        <div
-          style="
-            padding:30px;
-            font-family:Arial;
-          "
-        >
-
-          <h1>
-            Taller Rafael's
-          </h1>
-
+        <div style="padding:30px;font-family:Arial;">
+          <h1>TALLER RAFAEL'S</h1>
           <hr>
-
-          <h2>
-            Reporte General
-          </h2>
+          <h2>Reporte General</h2>
 
           <table
             border="1"
-            cellpadding="10"
             cellspacing="0"
+            cellpadding="10"
             width="100%"
-            style="
-              margin-top:20px;
-              border-collapse:collapse;
-            "
+            style="border-collapse:collapse;margin-top:20px;"
           >
 
             <tr>
               <th>#</th>
               <th>Trabajador</th>
               <th>Área</th>
-              <th>Sueldo</th>
+              <th>Horas</th>
+              <th>Ganancia</th>
             </tr>
       `;
 
-      trabajadores.forEach((t,index)=>{
+      trabajadores.forEach((t, index) => {
+
+        const sueldo =
+          parseFloat(t.sueldo_base) || 0;
+
+        const horas =
+          parseFloat(t.horas) || 0;
+
+        const pagoHora =
+          sueldo / FACTOR_HORAS_SEMANALES;
+
+        const ganancia =
+          horas * pagoHora;
 
         html += `
           <tr>
 
-            <td>
-              ${index + 1}
-            </td>
+            <td>${index + 1}</td>
 
             <td>
-              ${t.nombres}
-              ${t.apellidos}
+              ${t.apellidos}, ${t.nombres}
             </td>
 
             <td>
@@ -1059,7 +1007,11 @@
             </td>
 
             <td>
-              S/. ${t.sueldo_base}
+              ${horas}
+            </td>
+
+            <td>
+              S/. ${ganancia.toFixed(2)}
             </td>
 
           </tr>
@@ -1071,30 +1023,30 @@
         </div>
       `;
 
-      const div =
-        document.createElement("div");
+      const div = document.createElement("div");
 
       div.innerHTML = html;
 
       html2pdf()
         .from(div)
         .set({
-          margin:0.5,
-          filename:"Reporte_General.pdf",
-          html2canvas:{
-            scale:2
+          margin: 0.5,
+          filename: "Reporte_General.pdf",
+          image: {
+            type: "jpeg",
+            quality: 0.98
           },
-          jsPDF:{
-            unit:"in",
-            format:"letter",
-            orientation:"portrait"
+          html2canvas: {
+            scale: 2
+          },
+          jsPDF: {
+            unit: "in",
+            format: "letter",
+            orientation: "portrait"
           }
         })
         .save();
-
     }
-
   </script>
-
 </body>
 </html>
