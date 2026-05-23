@@ -181,368 +181,648 @@
     <div id="toastContainer" class="fixed bottom-5 right-5 z-50 space-y-3 pointer-events-none"></div>
 
     <script type="module">
-        import { calcularDiferenciaHoras, convertirAMinutos } from './reporte.js';
+    import { calcularDiferenciaHoras } from './reporte.js';
 
-        const API_URL = "http://localhost:3000/api/trabajadores";
-        let trabajadores = [];
-        let estadoMarcaciones = JSON.parse(localStorage.getItem('estadoMarcaciones_v3')) || {};
+    const API_URL = "https://taller-rafael.onrender.com/api/trabajadores";
 
-        document.addEventListener("DOMContentLoaded", () => {
-            inicializarRelojCompleto();
-            inicializarSelectoresModal();
-            evaluarEstadoLaboral();
-            cargarTrabajadores();
-            
-            document.getElementById("buscador").addEventListener("input", filtrarTrabajadores);
-            document.getElementById("btnCerrarModalX").addEventListener("click", () => toggleModal('modalEditarHoras'));
-            document.getElementById("btnCancelarModal").addEventListener("click", () => toggleModal('modalEditarHoras'));
-            document.getElementById("formEdicionHoras").addEventListener("submit", guardarCorreccionHoras);
-            
-            // Listeners para el nuevo modal de confirmación
-            document.getElementById("btnReiniciarDiario").addEventListener("click", () => toggleModal('modalConfirmarReiniciar'));
-            document.getElementById("btnCancelarReiniciar").addEventListener("click", () => toggleModal('modalConfirmarReiniciar'));
-            document.getElementById("btnAceptarReiniciar").addEventListener("click", ejecutarReinicioDiario);
+    let trabajadores = [];
 
-            setInterval(evaluarEstadoLaboral, 30000);
+    // GUARDA MARCACIONES
+    let estadoMarcaciones = JSON.parse(
+        localStorage.getItem('estadoMarcaciones_v4')
+    ) || {};
+
+    // GUARDA DATOS DEL DASHBOARD
+    let dashboardData = JSON.parse(
+        localStorage.getItem('dashboardData_v1')
+    ) || {
+        asistencias: [],
+        totalHoras: 0,
+        totalEntradas: 0,
+        totalSalidas: 0
+    };
+
+    document.addEventListener("DOMContentLoaded", () => {
+
+        inicializarRelojCompleto();
+        inicializarSelectoresModal();
+        evaluarEstadoLaboral();
+        cargarTrabajadores();
+
+        document.getElementById("buscador")
+            .addEventListener("input", filtrarTrabajadores);
+
+        document.getElementById("btnCerrarModalX")
+            .addEventListener("click", () => toggleModal('modalEditarHoras'));
+
+        document.getElementById("btnCancelarModal")
+            .addEventListener("click", () => toggleModal('modalEditarHoras'));
+
+        document.getElementById("formEdicionHoras")
+            .addEventListener("submit", guardarCorreccionHoras);
+
+        document.getElementById("btnReiniciarDiario")
+            .addEventListener("click", () => toggleModal('modalConfirmarReiniciar'));
+
+        document.getElementById("btnCancelarReiniciar")
+            .addEventListener("click", () => toggleModal('modalConfirmarReiniciar'));
+
+        document.getElementById("btnAceptarReiniciar")
+            .addEventListener("click", ejecutarReinicioDiario);
+
+        setInterval(evaluarEstadoLaboral, 30000);
+    });
+
+    // =========================================================
+    // RELOJ
+    // =========================================================
+
+    function inicializarRelojCompleto() {
+
+        setInterval(() => {
+
+            const ahora = new Date();
+
+            let horas = ahora.getHours();
+
+            const minutos = String(
+                ahora.getMinutes()
+            ).padStart(2, '0');
+
+            const segundos = String(
+                ahora.getSeconds()
+            ).padStart(2, '0');
+
+            const periodo = horas >= 12 ? 'PM' : 'AM';
+
+            horas = horas % 12;
+            horas = horas ? horas : 12;
+
+            const horasStr = String(horas).padStart(2, '0');
+
+            document.getElementById("relojDigital").innerText =
+                `${horasStr}:${minutos}:${segundos} ${periodo}`;
+
+        }, 1000);
+    }
+
+    // =========================================================
+    // ESTADO LABORAL
+    // =========================================================
+
+    function evaluarEstadoLaboral() {
+
+        const ahora = new Date();
+        const hora = ahora.getHours();
+
+        const btnEstado = document.getElementById("estadoLaboral");
+
+        if (hora >= 5 && hora < 23) {
+
+            btnEstado.className =
+                "bg-green-600 text-white text-xs sm:text-sm font-bold px-4 py-2.5 rounded-xl flex items-center gap-2";
+
+            btnEstado.innerHTML =
+                `<i class="fa-solid fa-circle-check"></i> Laborando`;
+
+        } else {
+
+            btnEstado.className =
+                "bg-red-600 text-white text-xs sm:text-sm font-bold px-4 py-2.5 rounded-xl flex items-center gap-2";
+
+            btnEstado.innerHTML =
+                `<i class="fa-solid fa-lock"></i> No Laborando`;
+        }
+    }
+
+    // =========================================================
+    // SELECTORES
+    // =========================================================
+
+    function inicializarSelectoresModal() {
+
+        const selInHora = document.getElementById("inHora");
+        const selOutHora = document.getElementById("outHora");
+
+        const selInMin = document.getElementById("inMinuto");
+        const selOutMin = document.getElementById("outMinuto");
+
+        for(let i = 1; i <= 12; i++) {
+
+            const h = String(i).padStart(2, '0');
+
+            selInHora.innerHTML += `<option value="${h}">${h}</option>`;
+            selOutHora.innerHTML += `<option value="${h}">${h}</option>`;
+        }
+
+        for(let i = 0; i < 60; i++) {
+
+            const m = String(i).padStart(2, '0');
+
+            selInMin.innerHTML += `<option value="${m}">${m}</option>`;
+            selOutMin.innerHTML += `<option value="${m}">${m}</option>`;
+        }
+    }
+
+    // =========================================================
+    // CARGAR
+    // =========================================================
+
+    async function cargarTrabajadores() {
+
+        try {
+
+            const response = await fetch(API_URL);
+
+            if(response.ok) {
+
+                trabajadores = await response.json();
+
+                renderizarTabla();
+            }
+
+        } catch(error) {
+
+            console.error(error);
+        }
+    }
+
+    // =========================================================
+    // FORMATO HORAS
+    // =========================================================
+
+    function formatearHorasAcumuladas(horasDecimales) {
+
+        const totalMinutos = Math.round(
+            (parseFloat(horasDecimales) || 0) * 60
+        );
+
+        const hrs = Math.floor(totalMinutos / 60);
+
+        const mins = totalMinutos % 60;
+
+        return `${String(hrs).padStart(2, '0')}h y ${String(mins).padStart(2, '0')}min`;
+    }
+
+    // =========================================================
+    // TABLA
+    // =========================================================
+
+    function renderizarTabla() {
+
+        const tbody = document.getElementById("tablaAsistencia");
+
+        tbody.innerHTML = "";
+
+        const buscador = document.getElementById("buscador")
+            .value
+            .toLowerCase();
+
+        let count = 0;
+
+        trabajadores.forEach((t) => {
+
+            const nombreCompleto =
+                `${t.apellidos}, ${t.nombres}`;
+
+            if (
+                buscador &&
+                !nombreCompleto.toLowerCase().includes(buscador) &&
+                !t.dni.includes(buscador)
+            ) return;
+
+            count++;
+
+            if(!estadoMarcaciones[t.id]) {
+
+                estadoMarcaciones[t.id] = {
+                    entrada: "--:--",
+                    salida: "--:--"
+                };
+            }
+
+            let badgeColor =
+                t.area_trabajo === 'maquinista'
+                ? 'bg-purple-50 text-purple-700'
+                : t.area_trabajo === 'manual'
+                ? 'bg-amber-50 text-amber-700'
+                : 'bg-blue-50 text-blue-700';
+
+            const tr = document.createElement("tr");
+
+            tr.innerHTML = `
+                <td class="py-4 px-6 text-center">${count}</td>
+
+                <td class="py-4 px-6 font-semibold">
+                    ${nombreCompleto}
+                </td>
+
+                <td class="py-4 px-6">
+                    <span class="${badgeColor} text-xs px-2 py-1 rounded-lg capitalize">
+                        ${t.area_trabajo}
+                    </span>
+                </td>
+
+                <td class="py-4 px-6 text-center font-mono">
+                    ${estadoMarcaciones[t.id].entrada}
+                </td>
+
+                <td class="py-4 px-6 text-center font-mono">
+                    ${estadoMarcaciones[t.id].salida}
+                </td>
+
+                <td class="py-4 px-6 text-center font-bold text-blue-600">
+                    ${formatearHorasAcumuladas(t.horas)}
+                </td>
+
+                <td class="py-4 px-6 text-center">
+                    <div class="flex justify-center gap-2">
+
+                        <button class="btn-entrada px-3 py-2 bg-blue-500 text-white rounded-lg text-xs">
+                            Entrada
+                        </button>
+
+                        <button class="btn-salida px-3 py-2 bg-green-500 text-white rounded-lg text-xs">
+                            Salida
+                        </button>
+
+                    </div>
+                </td>
+
+                <td class="py-4 px-6 text-center">
+
+                    <button class="btn-ajuste p-2 bg-amber-500 text-white rounded-lg">
+                        <i class="fa-solid fa-pen"></i>
+                    </button>
+
+                </td>
+            `;
+
+            tr.querySelector(".btn-entrada")
+                .addEventListener("click", () => marcarEntrada(t.id));
+
+            tr.querySelector(".btn-salida")
+                .addEventListener("click", () => marcarSalida(t.id));
+
+            tr.querySelector(".btn-ajuste")
+                .addEventListener("click", () => abrirModalEdicion(t.id));
+
+            tbody.appendChild(tr);
+        });
+    }
+
+    // =========================================================
+    // FILTRO
+    // =========================================================
+
+    function filtrarTrabajadores() {
+        renderizarTabla();
+    }
+
+    // =========================================================
+    // MODAL
+    // =========================================================
+
+    function toggleModal(id) {
+        document.getElementById(id).classList.toggle("hidden");
+    }
+
+    // =========================================================
+    // TOAST
+    // =========================================================
+
+    function mostrarNotificacionToast(msg) {
+
+        const container = document.getElementById("toastContainer");
+
+        const toast = document.createElement("div");
+
+        toast.className =
+            "bg-slate-900 text-white px-5 py-3 rounded-xl";
+
+        toast.innerHTML = msg;
+
+        container.appendChild(toast);
+
+        setTimeout(() => {
+            toast.remove();
+        }, 3000);
+    }
+
+    // =========================================================
+    // FECHA
+    // =========================================================
+
+    function obtenerFechaHoraTiempoReal() {
+
+        const ahora = new Date();
+
+        const dia = String(
+            ahora.getDate()
+        ).padStart(2, '0');
+
+        const mes = String(
+            ahora.getMonth() + 1
+        ).padStart(2, '0');
+
+        const anio = ahora.getFullYear();
+
+        let hrs = ahora.getHours();
+
+        const mins = String(
+            ahora.getMinutes()
+        ).padStart(2, '0');
+
+        const periodo = hrs >= 12 ? 'PM' : 'AM';
+
+        hrs = hrs % 12;
+        hrs = hrs ? hrs : 12;
+
+        return `${dia}/${mes}/${anio} ${String(hrs).padStart(2,'0')}:${mins} ${periodo}`;
+    }
+
+    // =========================================================
+    // GUARDAR DASHBOARD
+    // =========================================================
+
+    function guardarDashboard(data) {
+
+        dashboardData.asistencias.push(data);
+
+        dashboardData.totalHoras += data.horas;
+
+        if(data.tipo === "entrada") {
+            dashboardData.totalEntradas++;
+        }
+
+        if(data.tipo === "salida") {
+            dashboardData.totalSalidas++;
+        }
+
+        localStorage.setItem(
+            'dashboardData_v1',
+            JSON.stringify(dashboardData)
+        );
+    }
+
+    // =========================================================
+    // ENTRADA
+    // =========================================================
+
+    function marcarEntrada(id) {
+
+        const t = trabajadores.find(x => x.id === id);
+
+        const fechaHora = obtenerFechaHoraTiempoReal();
+
+        estadoMarcaciones[t.id].entrada = fechaHora;
+
+        estadoMarcaciones[t.id].salida = "--:--";
+
+        localStorage.setItem(
+            'estadoMarcaciones_v4',
+            JSON.stringify(estadoMarcaciones)
+        );
+
+        guardarDashboard({
+            trabajador: `${t.nombres} ${t.apellidos}`,
+            fecha: fechaHora,
+            tipo: "entrada",
+            horas: 0
         });
 
-        function inicializarRelojCompleto() {
-            setInterval(() => {
-                const ahora = new Date();
-                let horas = ahora.getHours();
-                const minutos = String(ahora.getMinutes()).padStart(2, '0');
-                const segundos = String(ahora.getSeconds()).padStart(2, '0');
-                const periodo = horas >= 12 ? 'PM' : 'AM';
-                
-                horas = horas % 12;
-                horas = horas ? horas : 12;
-                const horasStr = String(horas).padStart(2, '0');
+        mostrarNotificacionToast(
+            `Entrada registrada para ${t.nombres}`
+        );
 
-                const reloj = document.getElementById("relojDigital");
-                if (reloj) {
-                    reloj.innerText = `${horasStr}:${minutos}:${segundos} ${periodo}`;
-                }
-            }, 1000);
+        renderizarTabla();
+    }
+
+    // =========================================================
+    // SALIDA
+    // =========================================================
+
+    async function marcarSalida(id) {
+
+        const t = trabajadores.find(x => x.id === id);
+
+        const entrada = estadoMarcaciones[t.id].entrada;
+
+        if(entrada === "--:--") {
+
+            alert("Primero registra entrada");
+            return;
         }
 
-        function evaluarEstadoLaboral() {
-            const ahora = new Date();
-            const hora = ahora.getHours();
-            const btnEstado = document.getElementById("estadoLaboral");
-            if (!btnEstado) return;
+        const salida = obtenerFechaHoraTiempoReal();
 
-            if (hora >= 5 && hora < 23) {
-                btnEstado.className = "bg-green-600 text-white text-xs sm:text-sm font-bold px-4 py-2.5 rounded-xl flex items-center gap-2 shadow-md shadow-green-600/10 cursor-default pointer-events-none";
-                btnEstado.innerHTML = `<i class="fa-solid fa-circle-check"></i> Laborando`;
-            } else {
-                btnEstado.className = "bg-red-600 text-white text-xs sm:text-sm font-bold px-4 py-2.5 rounded-xl flex items-center gap-2 shadow-md shadow-red-600/10 cursor-default pointer-events-none";
-                btnEstado.innerHTML = `<i class="fa-solid fa-lock"></i> No Laborando`;
-            }
-        }
+        estadoMarcaciones[t.id].salida = salida;
 
-        function inicializarSelectoresModal() {
-            const selInHora = document.getElementById("inHora");
-            const selOutHora = document.getElementById("outHora");
-            const selInMin = document.getElementById("inMinuto");
-            const selOutMin = document.getElementById("outMinuto");
+        const entradaHora =
+            entrada.split(" ").slice(1).join(" ");
 
-            if (!selInHora || !selOutHora || !selInMin || !selOutMin) return;
+        const salidaHora =
+            salida.split(" ").slice(1).join(" ");
 
-            selInHora.innerHTML = ""; selOutHora.innerHTML = ""; selInMin.innerHTML = ""; selOutMin.innerHTML = "";
+        const horasNuevas =
+            calcularDiferenciaHoras(
+                entradaHora,
+                salidaHora
+            );
 
-            for(let i = 1; i <= 12; i++) {
-                const hStr = String(i).padStart(2, '0');
-                selInHora.innerHTML += `<option value="${hStr}">${hStr}</option>`;
-                selOutHora.innerHTML += `<option value="${hStr}">${hStr}</option>`;
-            }
-            for(let i = 0; i < 60; i++) {
-                const mStr = String(i).padStart(2, '0');
-                selInMin.innerHTML += `<option value="${mStr}">${mStr}</option>`;
-                selOutMin.innerHTML += `<option value="${mStr}">${mStr}</option>`;
-            }
-        }
+        const nuevoAcumulado =
+            (parseFloat(t.horas) || 0) + horasNuevas;
 
-        async function cargarTrabajadores() {
-            try {
-                const response = await fetch(API_URL);
-                if (response.ok) {
-                    trabajadores = await response.json();
-                    renderizarTabla();
-                }
-            } catch (error) {
-                console.error("Error API:", error);
-            }
-        }
+        t.horas = nuevoAcumulado;
 
-        function formatearHorasAcumuladas(horasDecimales) {
-            const totalMinutos = Math.round((parseFloat(horasDecimales) || 0) * 60);
-            const hrs = Math.floor(totalMinutos / 60);
-            const mins = totalMinutos % 60;
-            return `${String(hrs).padStart(2, '0')}h y ${String(mins).padStart(2, '0')}min`;
-        }
+        try {
 
-        function renderizarTabla() {
-            const tbody = document.getElementById("tablaAsistencia");
-            if (!tbody) return;
-            const buscador = document.getElementById("buscador").value.toLowerCase();
-            tbody.innerHTML = "";
+            const response = await fetch(`${API_URL}/${t.id}`, {
 
-            let count = 0;
-            trabajadores.forEach((t, index) => {
-                const nombreCompleto = `${t.apellidos}, ${t.nombres}`;
-                if (buscador && !nombreCompleto.toLowerCase().includes(buscador) && !t.dni.includes(buscador)) return;
+                method: "PUT",
 
-                count++;
+                headers: {
+                    "Content-Type": "application/json"
+                },
 
-                if (!estadoMarcaciones[t.id]) {
-                    estadoMarcaciones[t.id] = { entrada: "--:--", salida: "--:--" };
-                }
+                body: JSON.stringify({
 
-                let badgeColor = t.area_trabajo === 'maquinista' ? 'bg-purple-50 text-purple-700' : t.area_trabajo === 'manual' ? 'bg-amber-50 text-amber-700' : 'bg-blue-50 text-blue-700';
-
-                const tr = document.createElement("tr");
-                tr.className = "hover:bg-gray-50/60 transition-colors";
-                tr.innerHTML = `
-                    <td class="py-4 px-6 text-center font-medium text-gray-400">${count}</td>
-                    <td class="py-4 px-6 font-semibold text-gray-900">${nombreCompleto}</td>
-                    <td class="py-4 px-6">
-                        <span class="${badgeColor} text-xs px-2.5 py-1 rounded-lg font-semibold capitalize">${t.area_trabajo}</span>
-                    </td>
-                    <td class="py-4 px-6 text-center font-mono text-xs font-bold text-slate-700">${estadoMarcaciones[t.id].entrada}</td>
-                    <td class="py-4 px-6 text-center font-mono text-xs font-bold text-slate-700">${estadoMarcaciones[t.id].salida}</td>
-                    <td class="py-4 px-6 text-center font-black text-blue-600 bg-blue-50/30 rounded-xl">${formatearHorasAcumuladas(t.horas)}</td>
-                    <td class="py-4 px-6 text-center">
-                        <div class="inline-flex rounded-xl shadow-sm border border-gray-200 bg-white p-1 gap-1">
-                            <button class="btn-entrada px-3 py-1.5 bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white rounded-lg transition-all text-xs font-bold flex items-center gap-1">
-                                <i class="fa-solid fa-right-to-bracket"></i> Entrada
-                            </button>
-                            <button class="btn-salida px-3 py-1.5 bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white rounded-lg transition-all text-xs font-bold flex items-center gap-1">
-                                <i class="fa-solid fa-right-from-bracket"></i> Salida
-                            </button>
-                        </div>
-                    </td>
-                    <td class="py-4 px-6 text-center">
-                        <button class="btn-ajuste p-2 bg-slate-100 hover:bg-amber-500 text-slate-600 hover:text-white rounded-xl transition-all" title="Corregir Horas Manualmente">
-                            <i class="fa-solid fa-clock-rotate-left text-sm"></i>
-                        </button>
-                    </td>
-                `;
-
-                tr.querySelector(".btn-entrada").addEventListener("click", () => marcarEntrada(t.id));
-                tr.querySelector(".btn-salida").addEventListener("click", () => marcarSalida(t.id));
-                tr.querySelector(".btn-ajuste").addEventListener("click", () => abrirModalEdicion(t.id));
-
-                tbody.appendChild(tr);
+                    nombres: t.nombres,
+                    apellidos: t.apellidos,
+                    dni: t.dni,
+                    telefono: t.telefono,
+                    area_trabajo: t.area_trabajo,
+                    sueldo_base: parseFloat(t.sueldo_base),
+                    horas: parseFloat(
+                        nuevoAcumulado.toFixed(4)
+                    )
+                })
             });
-        }
 
-        function filtrarTrabajadores() {
-            renderizarTabla();
-        }
+            if(response.ok) {
 
-        function toggleModal(modalId) {
-            const modal = document.getElementById(modalId);
-            if(modal) modal.classList.toggle('hidden');
-        }
+                localStorage.setItem(
+                    'estadoMarcaciones_v4',
+                    JSON.stringify(estadoMarcaciones)
+                );
 
-        function mostrarNotificacionToast(mensaje) {
-            const container = document.getElementById("toastContainer");
-            if (!container) return;
-            const toast = document.createElement("div");
-            toast.className = "bg-slate-900 text-white px-5 py-3.5 rounded-xl shadow-xl flex items-center gap-3 text-sm font-medium transition-all duration-300 transform translate-y-4 opacity-0 pointer-events-auto border border-slate-800";
-            toast.innerHTML = `<i class="fa-solid fa-circle-check text-green-400 text-lg"></i> <span>${mensaje}</span>`;
-            
-            container.appendChild(toast);
-            setTimeout(() => toast.classList.remove("translate-y-4", "opacity-0"), 50);
-
-            setTimeout(() => {
-                toast.classList.add("opacity-0", "translate-y-2");
-                setTimeout(() => toast.remove(), 300);
-            }, 4000);
-        }
-
-        // Obtiene la Fecha y la Hora en formato dinámico en Tiempo Real (DD/MM/YYYY hh:mm AM/PM)
-        function obtenerFechaHoraTiempoReal() {
-            const ahora = new Date();
-            const dia = String(ahora.getDate()).padStart(2, '0');
-            const mes = String(ahora.getMonth() + 1).padStart(2, '0');
-            const anio = ahora.getFullYear();
-            
-            let hrs = ahora.getHours();
-            const minutos = String(ahora.getMinutes()).padStart(2, '0');
-            const periodo = hrs >= 12 ? 'PM' : 'AM';
-            hrs = hrs % 12;
-            hrs = hrs ? hrs : 12;
-            const horaStr = `${String(hrs).padStart(2, '0')}:${minutos} ${periodo}`;
-
-            return `${dia}/${mes}/${anio} ${horaStr}`;
-        }
-
-        function marcarEntrada(id) {
-            const t = trabajadores.find(trabajador => trabajador.id === id);
-            if (!t) return;
-            const fechaHoraString = obtenerFechaHoraTiempoReal();
-
-            estadoMarcaciones[t.id].entrada = fechaHoraString;
-            estadoMarcaciones[t.id].salida = "--:--"; 
-            localStorage.setItem('estadoMarcaciones_v3', JSON.stringify(estadoMarcaciones));
-
-            mostrarNotificacionToast(`Entrada registrada para ${t.nombres} el ${fechaHoraString}.`);
-            renderizarTabla();
-        }
-
-        async function marcarSalida(id) {
-            const t = trabajadores.find(trabajador => trabajador.id === id);
-            if (!t) return;
-            const entradaStr = estadoMarcaciones[t.id].entrada;
-
-            if (entradaStr === "--:--") {
-                alert("Primero debes registrar una hora de entrada.");
-                return;
-            }
-
-            const salidaStr = obtenerFechaHoraTiempoReal();
-            estadoMarcaciones[t.id].salida = salidaStr;
-
-            // Para calcular la diferencia, extraemos solo el componente de hora (hh:mm AM/PM) de la cadena completa
-            const entradaSoloHora = entradaStr.includes(" ") ? entradaStr.split(" ").slice(1).join(" ") : entradaStr;
-            const salidaSoloHora = salidaStr.includes(" ") ? salidaStr.split(" ").slice(1).join(" ") : salidaStr;
-
-            const fraccionHorasNuevas = calcularDiferenciaHoras(entradaSoloHora, salidaSoloHora);
-            const nuevoAcumuladoBackend = (parseFloat(t.horas) || 0) + fraccionHorasNuevas;
-
-            t.horas = nuevoAcumuladoBackend;
-
-            try {
-                const response = await fetch(`${API_URL}/${t.id}`, {
-                    method: "PUT",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        nombres: t.nombres,
-                        apellidos: t.apellidos,
-                        dni: t.dni,
-                        telefono: t.telefono,
-                        area_trabajo: t.area_trabajo,
-                        sueldo_base: parseFloat(t.sueldo_base),
-                        horas: parseFloat(nuevoAcumuladoBackend.toFixed(4))
-                    })
+                guardarDashboard({
+                    trabajador: `${t.nombres} ${t.apellidos}`,
+                    fecha: salida,
+                    tipo: "salida",
+                    horas: horasNuevas
                 });
 
-                if (response.ok) {
-                    localStorage.setItem('estadoMarcaciones_v3', JSON.stringify(estadoMarcaciones));
-                    mostrarNotificacionToast(`Salida guardada. +${fraccionHorasNuevas.toFixed(2)} hrs.`);
-                    renderizarTabla();
-                }
-            } catch (error) {
-                console.error("Error al guardar salida:", error);
-            }
-        }
+                mostrarNotificacionToast(
+                    `Salida guardada correctamente`
+                );
 
-        function abrirModalEdicion(id) {
-            const t = trabajadores.find(trabajador => trabajador.id === id);
-            if (!t) return;
-            document.getElementById("editIndex").value = t.id;
-            document.getElementById("editTrabajadorNombre").value = `${t.apellidos}, ${t.nombres}`;
-
-            const marcas = estadoMarcaciones[t.id];
-            
-            // Si el string contiene fecha, aislamos solo la hora para el modal selector
-            let inStr = marcas.entrada !== "--:--" ? (marcas.entrada.includes(" ") ? marcas.entrada.split(" ").slice(1).join(" ") : marcas.entrada) : "08:00 AM";
-            let outStr = marcas.salida !== "--:--" ? (marcas.salida.includes(" ") ? marcas.salida.split(" ").slice(1).join(" ") : marcas.salida) : "05:00 PM";
-
-            descomponerHoraEnSelectores("in", inStr);
-            descomponerHoraEnSelectores("out", outStr);
-
-            toggleModal('modalEditarHoras');
-        }
-
-        function descomponerHoraEnSelectores(prefijo, completoStr) {
-            const [tiempo, periodo] = completoStr.split(" ");
-            let [hrs, mins] = tiempo.split(":");
-            
-            hrs = String(hrs).padStart(2, '0');
-            mins = String(mins).padStart(2, '0');
-
-            document.getElementById(`${prefijo}Hora`).value = hrs;
-            document.getElementById(`${prefijo}Minuto`).value = mins;
-            document.getElementById(`${prefijo}Periodo`).value = periodo;
-        }
-
-        async function guardarCorreccionHoras(e) {
-            e.preventDefault();
-            const id = document.getElementById("editIndex").value;
-            const t = trabajadores.find(trabajador => String(trabajador.id) === String(id));
-            if (!t) return;
-
-            const entH = document.getElementById("inHora").value;
-            const entM = document.getElementById("inMinuto").value;
-            const entP = document.getElementById("inPeriodo").value;
-            const entradaCompletaHora = `${entH}:${entM} ${entP}`;
-
-            const salH = document.getElementById("outHora").value;
-            const salM = document.getElementById("outMinuto").value;
-            const salP = document.getElementById("outPeriodo").value;
-            const salidaCompletaHora = `${salH}:${salM} ${salP}`;
-
-            const nuevasHorasCalculadas = calcularDiferenciaHoras(entradaCompletaHora, salidaCompletaHora);
-
-            const marcaPrevia = estadoMarcaciones[t.id];
-            let horasViejasCalculadas = 0;
-            if (marcaPrevia.entrada !== "--:--" && marcaPrevia.salida !== "--:--") {
-                const prevInHora = marcaPrevia.entrada.includes(" ") ? marcaPrevia.entrada.split(" ").slice(1).join(" ") : marcaPrevia.entrada;
-                const prevOutHora = marcaPrevia.salida.includes(" ") ? marcaPrevia.salida.split(" ").slice(1).join(" ") : marcaPrevia.salida;
-                horasViejasCalculadas = calcularDiferenciaHoras(prevInHora, prevOutHora);
+                renderizarTabla();
             }
 
-            // Al guardar manualmente, mantenemos la fecha del día de hoy antepuesta
-            const fechaHoy = new Date().toLocaleDateString('es-PE', { day: '2-digit', month: '2-digit', year: 'numeric' });
-            
-            estadoMarcaciones[t.id].entrada = `${fechaHoy} ${entradaCompletaHora}`;
-            estadoMarcaciones[t.id].salida = `${fechaHoy} ${salidaCompletaHora}`;
-            localStorage.setItem('estadoMarcaciones_v3', JSON.stringify(estadoMarcaciones));
+        } catch(error) {
 
-            const horasAnterioresPuras = (parseFloat(t.horas) || 0) - horasViejasCalculadas;
-            const nuevoAcumuladoFinal = Math.max(0, horasAnterioresPuras + nuevasHorasCalculadas);
+            console.error(error);
+        }
+    }
 
-            t.horas = nuevoAcumuladoFinal;
+    // =========================================================
+    // MODAL EDICION
+    // =========================================================
 
-            try {
-                const response = await fetch(`${API_URL}/${t.id}`, {
-                    method: "PUT",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        nombres: t.nombres,
-                        apellidos: t.apellidos,
-                        dni: t.dni,
-                        telefono: t.telefono,
-                        area_trabajo: t.area_trabajo,
-                        sueldo_base: parseFloat(t.sueldo_base),
-                        horas: parseFloat(nuevoAcumuladoFinal.toFixed(4))
-                    })
+    function abrirModalEdicion(id) {
+
+        const t = trabajadores.find(x => x.id === id);
+
+        document.getElementById("editIndex").value = t.id;
+
+        document.getElementById("editTrabajadorNombre").value =
+            `${t.apellidos}, ${t.nombres}`;
+
+        toggleModal("modalEditarHoras");
+    }
+
+    // =========================================================
+    // GUARDAR AJUSTES
+    // =========================================================
+
+    async function guardarCorreccionHoras(e) {
+
+        e.preventDefault();
+
+        const id = document.getElementById("editIndex").value;
+
+        const t = trabajadores.find(
+            x => String(x.id) === String(id)
+        );
+
+        const entrada =
+            `${document.getElementById("inHora").value}:` +
+            `${document.getElementById("inMinuto").value} ` +
+            `${document.getElementById("inPeriodo").value}`;
+
+        const salida =
+            `${document.getElementById("outHora").value}:` +
+            `${document.getElementById("outMinuto").value} ` +
+            `${document.getElementById("outPeriodo").value}`;
+
+        const nuevasHoras =
+            calcularDiferenciaHoras(
+                entrada,
+                salida
+            );
+
+        const fechaHoy = new Date()
+            .toLocaleDateString('es-PE');
+
+        estadoMarcaciones[t.id].entrada =
+            `${fechaHoy} ${entrada}`;
+
+        estadoMarcaciones[t.id].salida =
+            `${fechaHoy} ${salida}`;
+
+        localStorage.setItem(
+            'estadoMarcaciones_v4',
+            JSON.stringify(estadoMarcaciones)
+        );
+
+        t.horas = nuevasHoras;
+
+        try {
+
+            const response = await fetch(`${API_URL}/${t.id}`, {
+
+                method: "PUT",
+
+                headers: {
+                    "Content-Type": "application/json"
+                },
+
+                body: JSON.stringify({
+
+                    nombres: t.nombres,
+                    apellidos: t.apellidos,
+                    dni: t.dni,
+                    telefono: t.telefono,
+                    area_trabajo: t.area_trabajo,
+                    sueldo_base: parseFloat(t.sueldo_base),
+                    horas: parseFloat(
+                        nuevasHoras.toFixed(4)
+                    )
+                })
+            });
+
+            if(response.ok) {
+
+                guardarDashboard({
+                    trabajador: `${t.nombres} ${t.apellidos}`,
+                    fecha: fechaHoy,
+                    tipo: "ajuste",
+                    horas: nuevasHoras
                 });
 
-                if (response.ok) {
-                    toggleModal('modalEditarHoras');
-                    mostrarNotificacionToast(`Ajuste guardado correctamente en panel gráfico.`);
-                    renderizarTabla();
-                }
-            } catch (error) {
-                console.error("Error al enviar corrección:", error);
-            }
-        }
+                toggleModal("modalEditarHoras");
 
-        // Ejecuta el reinicio diario una vez se ha verificado en el modal moderno
-        function ejecutarReinicioDiario() {
-            trabajadores.forEach(t => {
-                estadoMarcaciones[t.id] = { entrada: "--:--", salida: "--:--" };
-            });
-            
-            localStorage.setItem('estadoMarcaciones_v3', JSON.stringify(estadoMarcaciones));
-            
-            toggleModal('modalConfirmarReiniciar');
-            mostrarNotificacionToast("Marcaciones diarias reiniciadas correctamente.");
-            renderizarTabla();
+                mostrarNotificacionToast(
+                    "Ajuste guardado correctamente"
+                );
+
+                renderizarTabla();
+            }
+
+        } catch(error) {
+
+            console.error(error);
         }
-    </script>
+    }
+
+    // =========================================================
+    // REINICIAR
+    // =========================================================
+
+    function ejecutarReinicioDiario() {
+
+        trabajadores.forEach(t => {
+
+            estadoMarcaciones[t.id] = {
+                entrada: "--:--",
+                salida: "--:--"
+            };
+        });
+
+        localStorage.setItem(
+            'estadoMarcaciones_v4',
+            JSON.stringify(estadoMarcaciones)
+        );
+
+        toggleModal('modalConfirmarReiniciar');
+
+        mostrarNotificacionToast(
+            "Marcaciones reiniciadas"
+        );
+
+        renderizarTabla();
+    }
+</script>
 </body>
 </html>
