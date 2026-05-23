@@ -31,6 +31,13 @@
             padding: 20px;
         }
 
+        /* Notificación Profesional */
+        #toast {
+            position: fixed; top: 20px; background: var(--success-color); color: white;
+            padding: 1rem 2rem; border-radius: 0.5rem; display: none; z-index: 10000;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3); font-weight: bold;
+        }
+
         #welcome-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(17, 24, 39, 0.95);
@@ -81,6 +88,8 @@
 </head>
 <body>
 
+<div id="toast">✅ Cambios guardados correctamente</div>
+
 <div id="welcome-overlay">
     <div class="welcome-box">
         <h2>¡Bienvenido, al TALLER RAFAEL'S!</h2>
@@ -118,13 +127,13 @@
     <div id="pin-view" class="section">
         <div id="pin-content">
             <h2>Acceso a Configuración</h2>
-            <p style="color: var(--text-muted); margin-bottom: 1.5rem;">Por favor, ingresa tu PIN de seguridad.</p>
-            <p class="error-message" id="pin-error"></p>
+            <p style="color: var(--text-muted); margin-bottom: 1.5rem;" id="pin-hint">Ingresa tu PIN de 6 dígitos.</p>
+            <p class="error-message" id="pin-error" style="display:block;"></p>
             <form id="pin-form">
                 <div class="form-group">
                     <input type="password" id="security-pin" class="form-control" style="text-align: center; letter-spacing: 0.5em; font-size: 1.5rem;" maxlength="6" pattern="[0-9]*" inputmode="numeric" required>
                 </div>
-                <button type="submit" class="btn-primary" id="pin-submit-btn">Ingresar PIN</button>
+                <button type="submit" class="btn-primary" id="pin-submit-btn">Verificar PIN</button>
             </form>
             <div id="pin-blocker">Has superado los intentos. Espera <span id="countdown">15</span> seg.</div>
             <div class="form-footer"><a href="#" id="pin-back-to-login" style="color:var(--text-muted)">Cancelar</a></div>
@@ -150,7 +159,6 @@
                 <input type="password" id="config-password" class="form-control">
                 <button type="button" class="toggle-password" data-target="config-password">👁️</button>
             </div>
-            <div class="error-message" id="config-error"></div>
             <div class="config-actions">
                 <button type="submit" class="btn-primary">Guardar</button>
                 <button type="button" id="config-exit" class="btn-primary btn-secondary">Salir</button>
@@ -181,6 +189,13 @@
     function showView(viewId) {
         Object.values(views).forEach(v => v.classList.remove('active'));
         views[viewId].classList.add('active');
+        if(viewId === 'login') document.getElementById('pin-error').textContent = '';
+    }
+
+    function showToast() {
+        const toast = document.getElementById('toast');
+        toast.style.display = 'block';
+        setTimeout(() => toast.style.display = 'none', 3000);
     }
 
     document.querySelectorAll('.toggle-password').forEach(btn => {
@@ -207,18 +222,31 @@
 
     document.getElementById('pin-form').addEventListener('submit', (e) => {
         e.preventDefault();
-        if (document.getElementById('security-pin').value === CORRECT_PIN) {
+        const pinInput = document.getElementById('security-pin');
+        if (pinInput.value === CORRECT_PIN) {
             showView('config');
+            pinInput.value = '';
+            pinAttempts = 0;
         } else {
             pinAttempts++;
-            if (pinAttempts >= MAX_PIN_ATTEMPTS) {
+            const remaining = MAX_PIN_ATTEMPTS - pinAttempts;
+            if (remaining > 0) {
+                document.getElementById('pin-error').textContent = `PIN incorrecto. Te quedan ${remaining} intentos.`;
+            } else {
                 document.getElementById('pin-submit-btn').style.display = 'none';
                 document.getElementById('pin-blocker').style.display = 'block';
-                setTimeout(() => {
-                    pinAttempts = 0;
-                    document.getElementById('pin-submit-btn').style.display = 'block';
-                    document.getElementById('pin-blocker').style.display = 'none';
-                }, LOCKOUT_SECONDS * 1000);
+                let timeLeft = LOCKOUT_SECONDS;
+                const timer = setInterval(() => {
+                    timeLeft--;
+                    document.getElementById('countdown').textContent = timeLeft;
+                    if (timeLeft <= 0) {
+                        clearInterval(timer);
+                        pinAttempts = 0;
+                        document.getElementById('pin-submit-btn').style.display = 'block';
+                        document.getElementById('pin-blocker').style.display = 'none';
+                        document.getElementById('pin-error').textContent = '';
+                    }
+                }, 1000);
             }
         }
     });
@@ -232,8 +260,8 @@
     document.getElementById('config-form').addEventListener('submit', (e) => {
         e.preventDefault();
         localStorage.setItem('profilePicture', document.getElementById('config-profile-pic-preview').src);
-        alert('Cambios guardados');
-        showView('login');
+        showToast();
+        setTimeout(() => showView('login'), 1500);
     });
 
     document.getElementById('config-exit').addEventListener('click', () => showView('login'));
