@@ -428,10 +428,6 @@
         </div>
     </div>
 
-<<<<<<<<< Temporary merge branch 1
-    <div id="config-view" class="section">
-        <h2>Panel de Configuración</h2>
-=========
     <div id="modalEliminarTrabajador" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
         <div class="bg-white w-full max-w-md rounded-2xl shadow-2xl border border-gray-100 overflow-hidden p-6 text-center">
             <div class="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center text-3xl mx-auto mb-4 border border-red-200">
@@ -514,102 +510,134 @@
     <script>
         const API_URL = "http://localhost:3000/api/trabajadores";
         const FACTOR_HORAS_SEMANALES = 62; // Factor usado para calcular el precio por hora de forma automática
->>>>>>>>> Temporary merge branch 2
-        
-        <form id="config-form">
-            <div class="profile-pic-container">
-                <img src="image.png" alt="Nuevo Perfil" id="config-profile-pic-preview" class="profile-pic" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
-                <div style="display:none; width:96px; height:96px; border-radius:50%; background-color:#374151; color:white; justify-content:center; align-items:center; font-size:2rem;">👤</div>
-                <input type="file" id="config-photo-input" class="custom-file-input" accept="image/*">
-                <label for="config-photo-input" class="file-upload-label">Cambiar foto 📷</label>
-            </div>
-            
-            <div class="form-group">
-                <label for="config-username">Nombre de Usuario</label>
-                <input type="text" id="config-username" class="form-control" value="sandra@admin.com" required>
-            </div>
-            
-            <div class="form-group">
-                <label for="config-password">Nueva Contraseña</label>
-                <input type="password" id="config-password" class="form-control" placeholder="Déjalo en blanco para no cambiar">
-                <button type="button" class="toggle-password" data-target="config-password">👁️</button>
-            </div>
-            
-            <div class="form-group">
-                <label for="config-confirm-password">Confirmar Nueva Contraseña</label>
-                <input type="password" id="config-confirm-password" class="form-control" placeholder="••••••••">
-                <button type="button" class="toggle-password" data-target="config-confirm-password">👁️</button>
-            </div>
 
-            <div class="error-message" id="config-error"></div>
-            
-            <div class="config-actions">
-                <button type="submit" class="btn-primary">Guardar Cambios</button>
-                <button type="button" id="config-exit" class="btn-primary btn-secondary">Salir sin Guardar</button>
-            </div>
-        </form>
-    </div>
+        let trabajadores = [];
+        let indexSeleccionado = null;
 
-</div>
+        document.addEventListener("DOMContentLoaded", () => {
+            evaluarEstadoLaboral();
+            cargarTrabajadoresDesdeBackend();
+            setInterval(evaluarEstadoLaboral, 30000);
 
-<script>
-    const CORRECT_USER = 'sandra@admin.com';
-    const CORRECT_PASS = 'Matyleoliam';
-    const CORRECT_PIN = '202611';
-    const MAX_PIN_ATTEMPTS = 3;
-    const LOCKOUT_SECONDS = 15;
-    let pinAttempts = 0;
-    let lockoutInterval;
-
-    const views = {
-        login: document.getElementById('login-view'),
-        pin: document.getElementById('pin-view'),
-        config: document.getElementById('config-view')
-    };
-
-    const loginProfilePic = document.getElementById('login-profile-pic');
-
-    document.addEventListener('DOMContentLoaded', () => {
-        const savedPhoto = localStorage.getItem('profilePicture');
-        if (savedPhoto) {
-            loginProfilePic.src = savedPhoto;
-            document.getElementById('config-profile-pic-preview').src = savedPhoto;
-        }
-    });
-
-    function showView(viewId) {
-        Object.values(views).forEach(view => view.classList.remove('active'));
-        views[viewId].classList.add('active');
-    }
-
-    document.querySelectorAll('.toggle-password').forEach(button => {
-        button.addEventListener('click', () => {
-            const targetId = button.getAttribute('data-target');
-            const targetInput = document.getElementById(targetId);
-            const type = targetInput.getAttribute('type') === 'password' ? 'text' : 'password';
-            targetInput.setAttribute('type', type);
-            button.textContent = type === 'password' ? '👁️' : '🙈';
+            document.getElementById("formSueldo").addEventListener("input", function() {
+                const sueldoVal = parseFloat(this.value);
+                const inputPagoHora = document.getElementById("formPagoHora");
+                if (!isNaN(sueldoVal) && sueldoVal > 0) {
+                    const calculado = sueldoVal / FACTOR_HORAS_SEMANALES;
+                    inputPagoHora.value = calculado.toFixed(2);
+                } else {
+                    inputPagoHora.value = "0.00";
+                }
+            });
         });
-    });
 
-    document.getElementById('login-form').addEventListener('submit', (e) => {
-        e.preventDefault();
-        const email = document.getElementById('login-email').value;
-        const pass = document.getElementById('login-password').value;
-        const errorMsg = document.getElementById('login-error');
+        function formatearHorasYMinutos(horasTotales) {
+            const horasEnteras = Math.floor(horasTotales);
+            const minutosCalculados = Math.round((horasTotales - horasEnteras) * 60);
+            const strHoras = String(horasEnteras).padStart(2, '0');
+            const strMinutos = String(minutosCalculados).padStart(2, '0');
+            return `${strHoras}horas y ${strMinutos}minutos`;
+        }
 
-        if (email === CORRECT_USER && pass === CORRECT_PASS) {
-            errorMsg.style.display = 'none';
-            // MOSTRAR BIENVENIDA
-            const overlay = document.getElementById('welcome-overlay');
-            overlay.style.display = 'flex';
-            setTimeout(() => {
-                window.location.href = 'dashboard.html';
-            }, 2000);
-        } else {
-            errorMsg.style.display = 'block';
-            loginProfilePic.style.borderColor = 'var(--error-color)';
-            setTimeout(() => loginProfilePic.style.borderColor = 'var(--primary-color)', 2000);
+        function evaluarEstadoLaboral() {
+            const ahora = new Date();
+            const horaActual = ahora.getHours();
+            const btnEstado = document.getElementById("estadoLaboral");
+            const indicadorMini = document.getElementById("indicadorMini");
+            if (horaActual >= 5 && horaActual < 23) {
+                btnEstado.className = "bg-green-600 text-white text-xs sm:text-sm font-semibold px-4 py-2.5 rounded-xl flex items-center gap-2 shadow-md shadow-green-600/10 cursor-default pointer-events-none";
+                btnEstado.innerHTML = `<i class="fa-solid fa-circle-check"></i> Laborando`;
+                indicadorMini.className = "absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 border-2 border-white rounded-full";
+            } else {
+                btnEstado.className = "bg-red-600 text-white text-xs sm:text-sm font-semibold px-4 py-2.5 rounded-xl flex items-center gap-2 shadow-md shadow-red-600/10 cursor-default pointer-events-none";
+                btnEstado.innerHTML = `<i class="fa-solid fa-lock"></i> No Laborando`;
+                indicadorMini.className = "absolute bottom-0 right-0 w-3.5 h-3.5 bg-red-500 border-2 border-white rounded-full";
+            }
+        }
+
+        function toggleModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if(modal) modal.classList.toggle('hidden');
+        }
+
+        async function cargarTrabajadoresDesdeBackend() {
+            try {
+                const response = await fetch(API_URL);
+                if (response.ok) {
+                    trabajadores = await response.json();
+                    renderizarTabla();
+                } else {
+                    console.error("Error al obtener datos del servidor");
+                }
+            } catch (error) {
+                console.error("Error de red o conexión al servidor:", error);
+            }
+        }
+
+        function renderizarTabla() {
+            const tbody = document.getElementById("tablaTrabajadores");
+            const buscador = document.getElementById("buscador").value.toLowerCase();
+            tbody.innerHTML = "";
+            let activos = 0;
+            trabajadores.forEach((t, index) => {
+                const nombreCompleto = `${t.apellidos}, ${t.nombres}`;
+                if (buscador && !nombreCompleto.toLowerCase().includes(buscador) && !t.dni.includes(buscador)) return;
+                activos++;
+                const sueldoBaseNum = parseFloat(t.sueldo_base) || 0;
+                const horasNum = parseFloat(t.horas) || 0;
+                const pagoHoraCalculado = sueldoBaseNum / FACTOR_HORAS_SEMANALES;
+                const gananciaSemanalAcumulada = pagoHoraCalculado * horasNum;
+                let badgeColor = t.area_trabajo === 'maquinista' ? 'bg-purple-50 text-purple-700' : t.area_trabajo === 'manual' ? 'bg-amber-50 text-amber-700' : 'bg-blue-50 text-blue-700';
+                tbody.innerHTML += `
+                    <tr class="hover:bg-gray-50/70 transition-colors">
+                        <td class="py-4 px-6 text-center font-medium text-gray-400">${activos}</td>
+                        <td class="py-4 px-6 font-semibold text-gray-900">${nombreCompleto}</td>
+                        <td class="py-4 px-6 text-gray-600">${t.dni}</td>
+                        <td class="py-4 px-6 text-gray-600">${t.telefono}</td>
+                        <td class="py-4 px-6"><span class="${badgeColor} text-xs px-2.5 py-1 rounded-lg font-semibold capitalize">${t.area_trabajo}</span></td>
+                        <td class="py-4 px-6 text-right text-gray-600 font-medium">S/. ${sueldoBaseNum.toFixed(2)}</td>
+                        <td class="py-4 px-6 text-center font-bold text-blue-600">${horasNum} hrs</td>
+                        <td class="py-4 px-6 text-right text-gray-600 font-medium">S/. ${pagoHoraCalculado.toFixed(2)}</td>
+                        <td class="py-4 px-6 text-right font-bold text-emerald-600 bg-emerald-50/30">S/. ${gananciaSemanalAcumulada.toFixed(2)}</td>
+                        <td class="py-4 px-6">
+                            <div class="flex items-center justify-center gap-2">
+                                <button onclick="abrirModalPago(${index})" class="p-2 bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white rounded-lg transition-all" title="Efectuar Pago"><i class="fa-solid fa-circle-check text-base"></i></button>
+                                <button onclick="prepararFormulario('editar', ${index})" class="p-2 bg-amber-50 text-amber-600 hover:bg-amber-600 hover:text-white rounded-lg transition-all" title="Editar"><i class="fa-solid fa-pen-to-square text-base"></i></button>
+                                <button onclick="descargarReporteIndividual(${index})" class="p-2 bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white rounded-lg transition-all" title="Descargar PDF"><i class="fa-solid fa-file-arrow-down text-base"></i></button>
+                                <button onclick="abrirModalDespido(${index})" class="p-2 bg-red-50 text-red-600 hover:bg-red-600 hover:text-white rounded-lg transition-all" title="Despedir"><i class="fa-solid fa-trash-can text-base"></i></button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
+            document.getElementById("contadorActivos").innerText = `${activos} Activos`;
+        }
+
+        function filtrarTrabajadores() { renderizarTabla(); }
+
+        function prepararFormulario(accion, index = null) {
+            document.getElementById("formTrabajador").reset();
+            const inputPagoHora = document.getElementById("formPagoHora");
+            if(accion === 'crear') {
+                document.getElementById("tituloModalTrabajador").innerHTML = `<i class="fa-solid fa-user-plus text-blue-500"></i> Añadir Nuevo Trabajador`;
+                document.getElementById("btnGuardarTrabajador").innerText = "Añadir Trabajador";
+                document.getElementById("formId").value = "";
+                inputPagoHora.value = "0.00";
+            } else {
+                document.getElementById("tituloModalTrabajador").innerHTML = `<i class="fa-solid fa-user-pen text-amber-500"></i> Editar Datos del Trabajador`;
+                document.getElementById("btnGuardarTrabajador").innerText = "Guardar Cambios";
+                const t = trabajadores[index];
+                document.getElementById("formId").value = t.id;
+                document.getElementById("formNombres").value = t.nombres;
+                document.getElementById("formApellidos").value = t.apellidos;
+                document.getElementById("formDni").value = t.dni;
+                document.getElementById("formTelefono").value = t.telefono;
+                document.getElementById("formArea").value = t.area_trabajo;
+                document.getElementById("formSueldo").value = t.sueldo_base;
+                const sueldoBaseNum = parseFloat(t.sueldo_base) || 0;
+                inputPagoHora.value = (sueldoBaseNum / FACTOR_HORAS_SEMANALES).toFixed(2);
+            }
+            toggleModal('modalTrabajador');
         }
 
         async function guardarTrabajador(e) {
