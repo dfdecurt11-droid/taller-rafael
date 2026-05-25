@@ -1,828 +1,615 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>TALLER RAFAEL'S - Control de Asistencia</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght=300;400;500;600;700;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <style>
-        body { font-family: 'Inter', sans-serif; }
+        *{ scroll-behavior:smooth; }
+        body{ font-family:'Inter',sans-serif; background: radial-gradient(circle at top left,#eff6ff 0%,transparent 30%), radial-gradient(circle at bottom right,#f1f5f9 0%,transparent 35%), #f8fafc; }
+        .glass-card{ background:rgba(255,255,255,0.95); backdrop-filter:blur(12px); }
+        .table-hover:hover{ background:#f8fafc; }
+        .animate-soft{ animation:softFade .25s ease; }
+        @keyframes softFade{ from{ opacity:0; transform:translateY(8px); } to{ opacity:1; transform:translateY(0); } }
+        .reloj-gradient{ background: linear-gradient(135deg, #020617 0%, #0f172a 40%, #1e293b 100%); }
+        .btn-effect{ transition:all .25s ease; }
+        .btn-effect:hover{ transform:translateY(-2px); }
+        .custom-scroll::-webkit-scrollbar{ height:8px; width:8px; }
+        .custom-scroll::-webkit-scrollbar-thumb{ background:#cbd5e1; border-radius:999px; }
+        .custom-scroll::-webkit-scrollbar-track{ background:transparent; }
     </style>
 </head>
-<body class="bg-gray-50 text-gray-800 antialiased min-h-screen flex flex-col md:flex-row">
+<body class="text-slate-800 antialiased min-h-screen flex flex-col md:flex-row">
+<aside class="w-full md:w-72 bg-slate-950 text-white flex flex-col justify-between p-6 md:h-screen md:sticky md:top-0 border-r border-slate-800 shadow-2xl">
 
-    <aside class="w-full md:w-64 bg-slate-900 text-white flex flex-col justify-between p-5 h-auto md:h-screen md:sticky md:top-0 shadow-xl z-40">
-        <div>
-            <div class="flex items-center gap-3 mb-8 border-b border-slate-800 pb-5">
-                <div class="bg-blue-600 p-2 rounded-lg text-white">
-                    <i class="fa-solid fa-screwdriver-wrench text-xl"></i>
-                </div>
-                <div>
-                    <h1 class="font-bold text-lg tracking-wide uppercase">Taller Rafael's</h1>
-                    <span class="text-xs text-slate-400">Sistema de Control</span>
-                </div>
+    <div>
+        <div class="flex items-center gap-4 pb-8 border-b border-slate-800/60 mb-8">
+            <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-blue-600 to-blue-500 flex items-center justify-center shadow-lg shadow-blue-600/20">
+                <i class="fa-solid fa-screwdriver-wrench text-2xl text-white"></i>
             </div>
-
-            <nav class="space-y-2">
-                <a href="dashboard.html" class="flex items-center gap-3 bg-blue-600 text-white px-4 py-3 rounded-xl font-medium transition-all shadow-md shadow-blue-600/20">
-                    <i class="fa-solid fa-chart-pie w-5"></i> Dashboard
-                </a>
-                
-                <a href="asistencia.html" class="flex items-center gap-3 text-slate-400 hover:bg-slate-800 hover:text-white px-4 py-3 rounded-xl font-medium transition-all">
-                    <i class="fa-solid fa-calendar-check w-5"></i> Asistencia
-                </a>
-
-                <a href="index.html" class="flex items-center gap-3 text-red-400 hover:bg-red-900/20 hover:text-red-400 px-4 py-3 rounded-xl font-medium transition-all">
-                    <i class="fa-solid fa-right-from-bracket w-5"></i> Salir
-                </a>
-            </nav>
+            <div>
+                <h1 class="font-black text-lg tracking-tight text-white">TALLER RAFAEL'S</h1>
+                <p class="text-xs text-slate-500 font-medium uppercase tracking-widest">Admin Panel</p>
+            </div>
         </div>
-    </aside>
 
-    <main class="flex-1 p-4 sm:p-6 md:p-8 overflow-y-auto">
-        
-        <header class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 bg-white p-5 rounded-2xl shadow-sm mb-6 border border-gray-100">
-            <div class="flex items-center gap-4">
-                <div class="bg-blue-50 text-blue-600 p-3 rounded-xl">
-                    <i class="fa-solid fa-user-clock text-2xl"></i>
-                </div>
-                <div>
-                    <h2 class="text-xl font-bold text-gray-900">Registro de Asistencia Diario</h2>
-                    <p class="text-sm text-gray-500 font-medium">Control de precisión absoluta por horas y minutos para planillas</p>
-                </div>
+        <nav class="space-y-2">
+            <a href="dashboard.html" class="flex items-center gap-3 text-slate-400 hover:bg-slate-900/50 hover:text-white px-4 py-3.5 rounded-xl font-medium transition-all duration-300 group">
+                <i class="fa-solid fa-chart-line w-5 text-slate-600 group-hover:text-blue-500 transition-colors"></i> 
+                Dashboard
+            </a>
+
+            <a href="asistencia.html" class="flex items-center gap-3 text-slate-400 hover:bg-slate-900/50 hover:text-white px-4 py-3.5 rounded-xl font-medium transition-all duration-300 group">
+                <i class="fa-solid fa-calendar-check w-5 text-slate-600 group-hover:text-blue-500 transition-colors"></i> 
+                Asistencia
+            </a>
+
+            <a href="reporte.html" class="flex items-center gap-3 text-slate-400 hover:bg-slate-900/50 hover:text-white px-4 py-3.5 rounded-xl font-medium transition-all duration-300 group">
+                <i class="fa-solid fa-file-invoice w-5 text-slate-600 group-hover:text-blue-500 transition-colors"></i> 
+                Reportes
+            </a>
+            <div class="pt-4 mt-4 border-t border-slate-800/60">
+                <a href="index.html" class="flex items-center gap-3 text-red-500/80 hover:bg-red-500/10 hover:text-red-400 px-4 py-3.5 rounded-xl font-medium transition-all">
+                    <i class="fa-solid fa-right-from-bracket w-5"></i> 
+                    Cerrar Sesión
+                </a>
             </div>
-            
-            <div class="flex flex-wrap items-center gap-3 bg-gray-50 p-2.5 rounded-2xl border border-gray-100 self-start lg:self-auto">
-                <div class="bg-slate-950 px-4 py-2 rounded-xl border border-slate-800 shadow-inner flex items-center gap-3">
-                    <i class="fa-solid fa-clock text-amber-500 animate-pulse text-lg"></i>
+        </nav>
+    </div>
+
+    <div class="hidden md:block">
+        <div class="bg-slate-900/50 border border-slate-800 rounded-2xl p-4 flex items-center justify-between">
+            <span class="text-xs font-bold text-slate-500 uppercase">Estado</span>
+            <div class="flex items-center gap-2 text-emerald-400 text-xs font-bold">
+                <span class="relative flex h-2 w-2">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                </span>
+                ONLINE
+            </div>
+        </div>
+    </div>
+</aside>
+    <main class="flex-1 p-4 sm:p-6 md:p-8 overflow-y-auto custom-scroll">
+        <header class="glass-card border border-white/70 rounded-3xl p-6 shadow-xl mb-6 animate-soft">
+            <div class="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-6">
+                <div class="flex items-center gap-5">
+                    <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-700 text-white flex items-center justify-center shadow-lg shadow-blue-600/20">
+                        <i class="fa-solid fa-user-clock text-2xl"></i>
+                    </div>
                     <div>
-                        <span class="text-[9px] text-slate-400 block font-bold tracking-widest uppercase">Hora Local</span>
-                        <span id="relojDigital" class="text-base font-black text-emerald-400 font-mono tracking-wider">--:--:-- --</span>
+                        <h2 class="text-2xl font-black text-slate-900">Registro de Asistencia</h2>
+                        <p class="text-sm text-slate-500 font-medium mt-1">Control diario profesional de entradas y salidas del personal</p>
                     </div>
                 </div>
-                <button id="estadoLaboral" class="text-white text-xs sm:text-sm font-bold px-4 py-3 rounded-xl transition-all flex items-center gap-2 cursor-default pointer-events-none shadow-sm"></button>
-                
-                <button id="btnReiniciarDiario" class="bg-white hover:bg-red-50 text-red-600 border border-gray-200 hover:border-red-200 px-4 py-3 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-2 shadow-sm" title="Reiniciar marcaciones del día a cero">
-                    <i class="fa-solid fa-rotate"></i> Reiniciar Día
-                </button>
+                <div class="flex flex-wrap items-center gap-3">
+                    <div class="reloj-gradient px-5 py-4 rounded-2xl shadow-2xl border border-slate-700 min-w-[250px]">
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 rounded-xl bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20">
+                                <i class="fa-solid fa-clock text-emerald-400 text-xl"></i>
+                            </div>
+                            <div>
+                                <span class="text-[10px] uppercase tracking-[0.25em] text-slate-400 font-bold block mb-1">Hora Local</span>
+                                <span id="relojDigital" class="text-2xl font-black text-white font-mono tracking-widest">--:--:--</span>
+                            </div>
+                        </div>
+                    </div>
+                    <button id="estadoLaboral" class="text-white text-sm font-bold px-5 py-4 rounded-2xl flex items-center gap-3 cursor-default pointer-events-none shadow-lg"></button>
+                    <button id="btnReiniciarDiario" class="btn-effect bg-white hover:bg-red-50 border border-slate-200 hover:border-red-200 text-red-600 px-5 py-4 rounded-2xl text-sm font-bold shadow-md flex items-center gap-3">
+                        <i class="fa-solid fa-rotate"></i> Reiniciar Día
+                    </button>
+                </div>
             </div>
         </header>
-
-        <section class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 mb-6">
-            <div class="relative w-full max-w-md">
-                <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-400">
-                    <i class="fa-solid fa-magnifying-glass"></i>
-                </span>
-                <input type="text" id="buscador" placeholder="Buscar por nombres, apellidos o DNI..." class="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm transition-all">
+        <section class="glass-card border border-white/70 rounded-3xl p-5 shadow-lg mb-6 animate-soft">
+            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
+                <div class="relative w-full lg:max-w-md">
+                    <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                    </span>
+                    <input type="text" id="buscador" placeholder="Buscar trabajador por nombres, apellidos o DNI..." class="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all text-sm font-medium" />
+                </div>
+                <div class="flex items-center gap-3">
+                    <div class="bg-blue-50 text-blue-700 px-4 py-3 rounded-2xl border border-blue-100">
+                        <span class="text-xs font-bold uppercase tracking-wider">Jornada Empresarial</span>
+                    </div>
+                </div>
             </div>
         </section>
-
-        <section class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-            <div class="p-5 border-b border-gray-100">
-                <h3 class="text-lg font-bold text-gray-900">Panel Operativo de Marcaciones</h3>
+        <section class="glass-card border border-white/70 rounded-3xl shadow-xl overflow-hidden animate-soft">
+            <div class="p-6 border-b border-slate-100 flex items-center justify-between">
+                <div>
+                    <h3 class="text-xl font-black text-slate-900">Panel Operativo de Marcaciones</h3>
+                    <p class="text-sm text-slate-500 font-medium mt-1">Administración completa de asistencias y horas acumuladas</p>
+                </div>
+                <div class="hidden md:flex items-center gap-2 bg-emerald-50 text-emerald-700 px-4 py-2 rounded-xl border border-emerald-100">
+                    <i class="fa-solid fa-circle-check text-xs"></i>
+                    <span class="text-xs font-bold uppercase">Sistema Activo</span>
+                </div>
             </div>
-
-            <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse whitespace-nowrap">
+            <div class="overflow-x-auto custom-scroll">
+                <table class="w-full text-left whitespace-nowrap">
                     <thead>
-                        <tr class="bg-gray-50 text-gray-500 text-xs font-bold uppercase tracking-wider border-b border-gray-100">
-                            <th class="py-4 px-6 text-center">#</th>
-                            <th class="py-4 px-6">Trabajador</th>
-                            <th class="py-4 px-6">Área de Trabajo</th>
-                            <th class="py-4 px-6 text-center">Fecha y Entrada</th>
-                            <th class="py-4 px-6 text-center">Fecha y Salida</th>
-                            <th class="py-4 px-6 text-center">Horas Acumuladas</th>
-                            <th class="py-4 px-6 text-center">Acciones de Marcado</th>
-                            <th class="py-4 px-6 text-center">Ajustes</th>
+                        <tr class="bg-slate-50 border-b border-slate-100 text-[11px] uppercase tracking-wider text-slate-500 font-black">
+                            <th class="py-5 px-6">Trabajador</th>
+                            <th class="py-5 px-6">Área</th>
+                            <th class="py-5 px-6 text-center">Entrada</th>
+                            <th class="py-5 px-6 text-center">Salida</th>
+                            <th class="py-5 px-6 text-center">Horas Acumuladas</th>
+                            <th class="py-5 px-6 text-center">Pago por Hora</th>
+                            <th class="py-5 px-6 text-center">Pago Semanal</th>
+                            <th class="py-5 px-6 text-center">Marcación</th>
                         </tr>
                     </thead>
-                    <tbody id="tablaAsistencia" class="divide-y divide-gray-100 text-sm">
-                    </tbody>
+                    <tbody id="tablaAsistencia" class="divide-y divide-slate-100 text-sm bg-white"></tbody>
                 </table>
             </div>
         </section>
     </main>
-
-    <div id="modalEditarHoras" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-        <div class="bg-white w-full max-w-md rounded-2xl shadow-2xl border border-gray-100 overflow-hidden">
-            <div class="bg-slate-950 p-5 text-white flex items-center justify-between">
-                <h4 class="font-bold text-lg flex items-center gap-2">
-                    <i class="fa-solid fa-user-clock text-amber-400"></i> Corregir Jornada Manual
-                </h4>
-                <button type="button" id="btnCerrarModalX" class="text-slate-400 hover:text-white transition-colors">
-                    <i class="fa-solid fa-xmark text-xl"></i>
-                </button>
+    <div id="modalEditarHoras" class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white w-full max-w-lg rounded-3xl shadow-2xl border border-slate-100 overflow-hidden animate-soft">
+            <div class="bg-slate-950 px-6 py-5 flex items-center justify-between">
+                <h4 class="font-black text-white text-lg flex items-center gap-3"><i class="fa-solid fa-user-clock text-amber-400"></i> Corrección Manual de Jornada</h4>
+                <button type="button" id="btnCerrarModalX" class="text-slate-400 hover:text-white transition-all"><i class="fa-solid fa-xmark text-xl"></i></button>
             </div>
-            
-            <form id="formEdicionHoras" class="p-6 space-y-4">
+            <form id="formEdicionHoras" class="p-6 space-y-5">
                 <input type="hidden" id="editIndex">
-                
                 <div>
-                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Trabajador</label>
-                    <input type="text" id="editTrabajadorNombre" readonly class="w-full p-3 bg-gray-100 border border-gray-200 rounded-xl text-sm font-semibold text-gray-700 outline-none cursor-not-allowed">
+                    <label class="block text-xs font-black text-slate-500 uppercase mb-2">Trabajador</label>
+                    <input type="text" id="editTrabajadorNombre" readonly class="w-full p-4 bg-slate-100 border border-slate-200 rounded-2xl font-semibold text-slate-700 outline-none" />
                 </div>
-
-                <div>
-                    <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Hora de Entrada Ajustada</label>
-                    <div class="grid grid-cols-3 gap-2">
-                        <select id="inHora" class="p-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-medium outline-none"></select>
-                        <select id="inMinuto" class="p-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-medium outline-none"></select>
-                        <select id="inPeriodo" class="p-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-bold text-blue-600 outline-none">
-                            <option value="AM">AM</option>
-                            <option value="PM">PM</option>
-                        </select>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div>
+                        <label class="block text-xs font-black text-slate-500 uppercase mb-2">Entrada</label>
+                        <div class="grid grid-cols-3 gap-2">
+                            <select id="inHora" class="p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold outline-none"></select>
+                            <select id="inMinuto" class="p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold outline-none"></select>
+                            <select id="inPeriodo" class="p-3 bg-blue-50 text-blue-700 border border-blue-100 rounded-xl text-sm font-black outline-none"><option value="AM">AM</option><option value="PM">PM</option></select>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-black text-slate-500 uppercase mb-2">Salida</label>
+                        <div class="grid grid-cols-3 gap-2">
+                            <select id="outHora" class="p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold outline-none"></select>
+                            <select id="outMinuto" class="p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold outline-none"></select>
+                            <select id="outPeriodo" class="p-3 bg-blue-50 text-blue-700 border border-blue-100 rounded-xl text-sm font-black outline-none"><option value="AM">AM</option><option value="PM">PM</option></select>
+                        </div>
                     </div>
                 </div>
-
-                <div>
-                    <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Hora de Salida Ajustada</label>
-                    <div class="grid grid-cols-3 gap-2">
-                        <select id="outHora" class="p-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-medium outline-none"></select>
-                        <select id="outMinuto" class="p-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-medium outline-none"></select>
-                        <select id="outPeriodo" class="p-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-bold text-blue-600 outline-none">
-                            <option value="AM">AM</option>
-                            <option value="PM">PM</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="flex items-center justify-end gap-3 pt-4 border-t border-gray-100">
-                    <button type="button" id="btnCancelarModal" class="px-5 py-2.5 rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-50 text-sm font-semibold transition-all">Cancelar</button>
-                    <button type="submit" class="px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold transition-all shadow-md">Guardar Cambios</button>
+                <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
+                    <button type="button" id="btnCancelarModal" class="px-5 py-3 rounded-2xl border border-slate-200 text-slate-700 hover:bg-slate-50 text-sm font-bold transition-all">Cancelar</button>
+                    <button type="submit" class="btn-effect px-5 py-3 rounded-2xl bg-amber-500 hover:bg-amber-600 text-white text-sm font-bold shadow-lg shadow-amber-500/20">Guardar Cambios</button>
                 </div>
             </form>
         </div>
     </div>
-
-    <div id="modalConfirmarReiniciar" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-        <div class="bg-white w-full max-w-sm rounded-2xl shadow-2xl border border-gray-100 overflow-hidden transform scale-100 transition-all">
-            <div class="p-6 text-center space-y-4">
-                <div class="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto text-2xl border border-red-100 shadow-sm">
-                    <i class="fa-solid fa-triangle-exclamation"></i>
-                </div>
-                <div class="space-y-1">
-                    <h4 class="text-lg font-bold text-gray-900">¿Reiniciar marcaciones?</h4>
-                    <p class="text-sm text-gray-500 font-medium leading-relaxed">Esta acción restablecerá a cero las entradas y salidas de hoy de todos los trabajadores. Las horas acumuladas no se perderán.</p>
-                </div>
-                <div class="grid grid-cols-2 gap-3 pt-2">
-                    <button type="button" id="btnCancelarReiniciar" class="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-gray-700 hover:bg-gray-50 text-sm font-semibold transition-all">
-                        Cancelar
-                    </button>
-                    <button type="button" id="btnAceptarReiniciar" class="w-full px-4 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white text-sm font-semibold transition-all shadow-md shadow-red-600/10">
-                        Sí, reiniciar
-                    </button>
+    <div id="modalConfirmarReiniciar" class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white w-full max-w-sm rounded-3xl shadow-2xl border border-slate-100 overflow-hidden animate-soft">
+            <div class="p-7 text-center">
+                <div class="w-20 h-20 mx-auto rounded-3xl bg-red-50 text-red-500 flex items-center justify-center text-3xl border border-red-100 shadow-sm mb-5"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                <h4 class="text-xl font-black text-slate-900 mb-2">¿Reiniciar marcaciones?</h4>
+                <p class="text-sm text-slate-500 font-medium leading-relaxed mb-6">Se reiniciarán las entradas y salidas del día actual sin afectar las horas acumuladas del personal.</p>
+                <div class="grid grid-cols-2 gap-3">
+                    <button type="button" id="btnCancelarReiniciar" class="w-full px-4 py-3 rounded-2xl border border-slate-200 text-slate-700 hover:bg-slate-50 text-sm font-bold transition-all">Cancelar</button>
+                    <button type="button" id="btnAceptarReiniciar" class="w-full px-4 py-3 rounded-2xl bg-red-600 hover:bg-red-700 text-white text-sm font-bold transition-all shadow-lg shadow-red-600/20">Reiniciar</button>
                 </div>
             </div>
         </div>
     </div>
-
     <div id="toastContainer" class="fixed bottom-5 right-5 z-50 space-y-3 pointer-events-none"></div>
 
-    <script type="module">
-    import { calcularDiferenciaHoras } from './reporte.js';
-
-    const API_URL = "http://localhost:3000/api/trabajadores";
-
-    let trabajadores = [];
-
-    // GUARDA MARCACIONES
-    let estadoMarcaciones = JSON.parse(
-        localStorage.getItem('estadoMarcaciones_v4')
-    ) || {};
-
-    // GUARDA DATOS DEL DASHBOARD
-    let dashboardData = JSON.parse(
-        localStorage.getItem('dashboardData_v1')
-    ) || {
-        asistencias: [],
-        totalHoras: 0,
-        totalEntradas: 0,
-        totalSalidas: 0
+<script type="module">
+import { calcularDiferenciaHoras } from './reporte.js';
+const API_URL = "http://localhost:3000/api/trabajadores";
+let trabajadores = [];
+let datosAsistencia = JSON.parse(localStorage.getItem('datosAsistencia_v1')) || {};
+let estadoMarcaciones = JSON.parse(localStorage.getItem('estadoMarcaciones_v4')) || {};
+let dashboardData = JSON.parse(localStorage.getItem('dashboardData_v1')) || { asistencias: [], totalHoras: 0, totalEntradas: 0, totalSalidas: 0 };
+document.addEventListener("DOMContentLoaded", () => {
+    inicializarRelojCompleto(); inicializarSelectoresModal(); evaluarEstadoLaboral(); cargarTrabajadores();
+    document.getElementById("buscador").addEventListener("input", filtrarTrabajadores);
+    document.getElementById("btnCerrarModalX").addEventListener("click", () => toggleModal('modalEditarHoras'));
+    document.getElementById("btnCancelarModal").addEventListener("click", () => toggleModal('modalEditarHoras'));
+    document.getElementById("formEdicionHoras").addEventListener("submit", guardarCorreccionHoras);
+    document.getElementById("btnReiniciarDiario").addEventListener("click", () => toggleModal('modalConfirmarReiniciar'));
+    document.getElementById("btnCancelarReiniciar").addEventListener("click", () => toggleModal('modalConfirmarReiniciar'));
+    document.getElementById("btnAceptarReiniciar").addEventListener("click", ejecutarReinicioDiario);
+    setInterval(evaluarEstadoLaboral, 30000);
+    document.addEventListener("click", () => document.querySelectorAll(".menu-marcacion").forEach(m => m.classList.add("hidden")));
+});
+function inicializarRelojCompleto() {
+    const reloj = document.getElementById("relojDigital");
+    const actualizar = () => {
+        const ahora = new Date();
+        let h = ahora.getHours(), m = String(ahora.getMinutes()).padStart(2, '0'), s = String(ahora.getSeconds()).padStart(2, '0'), p = h >= 12 ? 'PM' : 'AM';
+        h = (h % 12) || 12;
+        reloj.innerText = `${String(h).padStart(2, '0')}:${m}:${s} ${p}`;
     };
+    actualizar(); setInterval(actualizar, 1000);
+}
+function evaluarEstadoLaboral() {
+    const hora = new Date().getHours(), btn = document.getElementById("estadoLaboral");
+    if (hora >= 5 && hora < 23) {
+        btn.className = "bg-emerald-600 text-white text-sm font-bold px-5 py-4 rounded-2xl flex items-center gap-3 shadow-lg shadow-emerald-600/20 cursor-default pointer-events-none";
+        btn.innerHTML = `<i class="fa-solid fa-circle-check"></i> Jornada Activa`;
+    } else {
+        btn.className = "bg-red-600 text-white text-sm font-bold px-5 py-4 rounded-2xl flex items-center gap-3 shadow-lg shadow-red-600/20 cursor-default pointer-events-none";
+        btn.innerHTML = `<i class="fa-solid fa-lock"></i> Jornada Cerrada`;
+    }
+}
+function inicializarSelectoresModal() {
+    const inH = document.getElementById("inHora"), outH = document.getElementById("outHora"), inM = document.getElementById("inMinuto"), outM = document.getElementById("outMinuto");
+    for(let i = 1; i <= 12; i++) { let h = String(i).padStart(2, '0'); inH.innerHTML += `<option value="${h}">${h}</option>`; outH.innerHTML += `<option value="${h}">${h}</option>`; }
+    for(let i = 0; i < 60; i++) { let m = String(i).padStart(2, '0'); inM.innerHTML += `<option value="${m}">${m}</option>`; outM.innerHTML += `<option value="${m}">${m}</option>`; }
+}
+async function cargarTrabajadores() {
+    try {
+        const res = await fetch(API_URL); if(!res.ok) throw new Error();
+        const data = await res.json();
+        trabajadores = data.map(t => {
+            const d = datosAsistencia[t.id] || {};
+            return { ...t, horas: d.horas ?? t.horas ?? 0, pago_hora: d.pago_hora ?? t.pago_hora ?? (parseFloat(t.sueldo_base) || 0) / 62, pago_semanal: d.pago_semanal ?? t.pago_semanal ?? 0 };
+        });
+        trabajadores.forEach(t => datosAsistencia[t.id] = { horas: parseFloat(t.horas) || 0, pago_hora: parseFloat(t.pago_hora) || 0, pago_semanal: parseFloat(t.pago_semanal) || 0 });
+        localStorage.setItem('datosAsistencia_v1', JSON.stringify(datosAsistencia));
+        renderizarTabla();
+    } catch(e) { console.error(e); mostrarNotificacionToast("Error al cargar trabajadores"); }
+}
+function formatearHorasAcumuladas(h) {
+    const tm = Math.round((parseFloat(h) || 0) * 60);
+    return `${String(Math.floor(tm / 60)).padStart(2, '0')} horas y ${String(tm % 60).padStart(2, '0')} minutos`;
+}
+function renderizarTabla() {
+    const tbody = document.getElementById("tablaAsistencia"), bus = document.getElementById("buscador").value.toLowerCase();
+    tbody.innerHTML = "";
+    trabajadores.forEach((t) => {
+        const nom = `${t.apellidos}, ${t.nombres}`;
+        if (bus && !nom.toLowerCase().includes(bus) && !t.dni.includes(bus)) return;
+        if (!estadoMarcaciones[t.id]) estadoMarcaciones[t.id] = { entrada: "--:--", salida: "--:--" };
+        let bC = t.area_trabajo === 'maquinista' ? 'bg-purple-50 text-purple-700 border border-purple-100' : t.area_trabajo === 'manual' ? 'bg-amber-50 text-amber-700 border border-amber-100' : 'bg-blue-50 text-blue-700 border border-blue-100';
+        const hT = parseFloat(t.horas) || 0, sB = parseFloat(t.sueldo_base) || 0, pH = sB / 62, pS = pH * hT;
+        const tr = document.createElement("tr"); tr.className = "table-hover transition-all";
+        tr.innerHTML = `<td class="py-5 px-6"><div class="flex flex-col"><span class="font-bold text-slate-900">${nom}</span><span class="text-xs text-slate-400 mt-1">DNI: ${t.dni}</span></div></td><td class="py-5 px-6"><span class="${bC} text-xs px-3 py-1.5 rounded-xl capitalize font-bold">${t.area_trabajo}</span></td><td class="py-5 px-6 text-center font-mono font-semibold text-blue-700">${estadoMarcaciones[t.id].entrada}</td><td class="py-5 px-6 text-center font-mono font-semibold text-emerald-700">${estadoMarcaciones[t.id].salida}</td><td class="py-5 px-6 text-center"><span class="bg-blue-50 text-blue-700 px-4 py-2 rounded-xl font-black border border-blue-100">${formatearHorasAcumuladas(hT)}</span></td><td class="py-5 px-6 text-center"><span class="bg-emerald-50 text-emerald-700 px-4 py-2 rounded-xl font-black border border-emerald-100">S/ ${pH.toFixed(2)}</span></td><td class="py-5 px-6 text-center"><span class="bg-purple-50 text-purple-700 px-4 py-2 rounded-xl font-black border border-purple-100">S/ ${pS.toFixed(2)}</span></td><td class="py-5 px-6 text-center relative"><div class="relative inline-block"><button class="btn-marcar btn-effect px-5 py-3 bg-gradient-to-r from-slate-900 to-slate-700 hover:from-slate-800 hover:to-slate-600 text-white rounded-2xl text-xs font-bold shadow-lg flex items-center gap-2"><i class="fa-solid fa-fingerprint"></i> Acciones <i class="fa-solid fa-chevron-down text-[10px]"></i></button><div class="menu-marcacion hidden absolute right-0 mt-3 w-56 bg-white border border-slate-200 rounded-2xl shadow-2xl overflow-hidden z-50 animate-soft"><button class="btn-entrada w-full text-left px-5 py-4 hover:bg-blue-50 text-blue-700 font-semibold text-sm flex items-center gap-3 transition-all"><div class="w-9 h-9 rounded-xl bg-blue-100 flex items-center justify-center"><i class="fa-solid fa-right-to-bracket"></i></div><div class="flex flex-col"><span>Registrar Entrada</span><small class="text-xs text-slate-400 font-medium">Inicio de jornada</small></div></button><button class="btn-salida w-full text-left px-5 py-4 hover:bg-emerald-50 text-emerald-700 font-semibold text-sm flex items-center gap-3 transition-all border-t border-slate-100"><div class="w-9 h-9 rounded-xl bg-emerald-100 flex items-center justify-center"><i class="fa-solid fa-right-from-bracket"></i></div><div class="flex flex-col"><span>Registrar Salida</span><small class="text-xs text-slate-400 font-medium">Fin de jornada</small></div></button><button class="btn-ajuste w-full text-left px-5 py-4 hover:bg-amber-50 text-amber-700 font-semibold text-sm flex items-center gap-3 transition-all border-t border-slate-100"><div class="w-9 h-9 rounded-xl bg-amber-100 flex items-center justify-center"><i class="fa-solid fa-pen"></i></div><div class="flex flex-col"><span>Ajustar Horas</span><small class="text-xs text-slate-400 font-medium">Corrección manual</small></div></button></div></div></td>`;
+        tr.querySelector(".btn-entrada").addEventListener("click", () => { marcarEntrada(t.id); tr.querySelector(".menu-marcacion").classList.add("hidden"); });
+        tr.querySelector(".btn-salida").addEventListener("click", () => { marcarSalida(t.id); tr.querySelector(".menu-marcacion").classList.add("hidden"); });
+        tr.querySelector(".btn-ajuste").addEventListener("click", () => { abrirModalEdicion(t.id); tr.querySelector(".menu-marcacion").classList.add("hidden"); });
+        tr.querySelector(".btn-marcar").addEventListener("click", (e) => { e.stopPropagation(); document.querySelectorAll(".menu-marcacion").forEach(m => { if(m !== tr.querySelector(".menu-marcacion")) m.classList.add("hidden"); }); tr.querySelector(".menu-marcacion").classList.toggle("hidden"); });
+        tbody.appendChild(tr);
+    });
+}
+function filtrarTrabajadores() { renderizarTabla(); }
+function toggleModal(id) { document.getElementById(id).classList.toggle("hidden"); }
+function mostrarNotificacionToast(msg) {
+    const container = document.getElementById("toastContainer"), toast = document.createElement("div");
+    toast.className = "bg-slate-950 text-white px-5 py-4 rounded-2xl shadow-2xl border border-slate-800 text-sm font-semibold animate-soft";
+    toast.innerHTML = `<div class="flex items-center gap-3"><i class="fa-solid fa-circle-check text-emerald-400"></i><span>${msg}</span></div>`;
+    container.appendChild(toast); setTimeout(() => toast.remove(), 3000);
+}
+function obtenerFechaHoraTiempoReal() {
+    const a = new Date();
+    let h = a.getHours(), m = String(a.getMinutes()).padStart(2, '0'), p = h >= 12 ? 'PM' : 'AM';
+    h = (h % 12) || 12;
+    return `${String(a.getDate()).padStart(2,'0')}/${String(a.getMonth()+1).padStart(2,'0')}/${a.getFullYear()} ${String(h).padStart(2,'0')}:${m} ${p}`;
+}
+function guardarDashboard(data) {
+    dashboardData.asistencias.push(data); dashboardData.totalHoras += data.horas;
+    if(data.tipo === "entrada") dashboardData.totalEntradas++;
+    if(data.tipo === "salida") dashboardData.totalSalidas++;
+    localStorage.setItem('dashboardData_v1', JSON.stringify(dashboardData));
+}
+async function marcarEntrada(id) {
 
-    document.addEventListener("DOMContentLoaded", () => {
+    const t = trabajadores.find(x => x.id === id);
 
-        inicializarRelojCompleto();
-        inicializarSelectoresModal();
-        evaluarEstadoLaboral();
-        cargarTrabajadores();
+    const fh = obtenerFechaHoraTiempoReal();
 
-        document.getElementById("buscador")
-            .addEventListener("input", filtrarTrabajadores);
+    estadoMarcaciones[t.id].entrada = fh;
 
-        document.getElementById("btnCerrarModalX")
-            .addEventListener("click", () => toggleModal('modalEditarHoras'));
+    estadoMarcaciones[t.id].salida = "--:--";
 
-        document.getElementById("btnCancelarModal")
-            .addEventListener("click", () => toggleModal('modalEditarHoras'));
+    localStorage.setItem(
+        'estadoMarcaciones_v4',
+        JSON.stringify(estadoMarcaciones)
+    );
 
-        document.getElementById("formEdicionHoras")
-            .addEventListener("submit", guardarCorreccionHoras);
+    // GUARDAR EN API
+    try {
 
-        document.getElementById("btnReiniciarDiario")
-            .addEventListener("click", () => toggleModal('modalConfirmarReiniciar'));
+        await fetch("http://localhost:3000/api/asistencias", {
 
-        document.getElementById("btnCancelarReiniciar")
-            .addEventListener("click", () => toggleModal('modalConfirmarReiniciar'));
+            method: "POST",
 
-        document.getElementById("btnAceptarReiniciar")
-            .addEventListener("click", ejecutarReinicioDiario);
+            headers: {
+                "Content-Type": "application/json"
+            },
 
-        setInterval(evaluarEstadoLaboral, 30000);
+            body: JSON.stringify({
+
+                dni: t.dni,
+
+                trabajador: `${t.apellidos}, ${t.nombres}`,
+
+                fecha: new Date().toLocaleDateString(),
+
+                hora_entrada: fh,
+
+                hora_salida: "--:--"
+
+            })
+
+        });
+
+    } catch(error) {
+
+        console.error(error);
+
+    }
+
+    guardarDashboard({
+
+        trabajador: `${t.nombres} ${t.apellidos}`,
+
+        fecha: fh,
+
+        tipo: "entrada",
+
+        horas: 0
+
     });
 
-    // =========================================================
-    // RELOJ
-    // =========================================================
+    mostrarNotificacionToast(
+        `Entrada registrada para ${t.nombres}`
+    );
 
-    function inicializarRelojCompleto() {
+    renderizarTabla();
 
-        setInterval(() => {
+}
+async function marcarSalida(id) {
 
-            const ahora = new Date();
+    const t = trabajadores.find(x => x.id === id);
 
-            let horas = ahora.getHours();
+    const ent = estadoMarcaciones[t.id].entrada;
 
-            const minutos = String(
-                ahora.getMinutes()
-            ).padStart(2, '0');
+    if (ent === "--:--") {
 
-            const segundos = String(
-                ahora.getSeconds()
-            ).padStart(2, '0');
+        alert("Primero registra entrada");
 
-            const periodo = horas >= 12 ? 'PM' : 'AM';
+        return;
 
-            horas = horas % 12;
-            horas = horas ? horas : 12;
-
-            const horasStr = String(horas).padStart(2, '0');
-
-            document.getElementById("relojDigital").innerText =
-                `${horasStr}:${minutos}:${segundos} ${periodo}`;
-
-        }, 1000);
     }
 
-    // =========================================================
-    // ESTADO LABORAL
-    // =========================================================
+    // =========================================
+    // OBTENER FECHA Y HORA DE SALIDA
+    // =========================================
 
-    function evaluarEstadoLaboral() {
+    const ahora = new Date();
 
-        const ahora = new Date();
-        const hora = ahora.getHours();
+    const fechaActual = ahora.toISOString().split("T")[0];
 
-        const btnEstado = document.getElementById("estadoLaboral");
+    const horaSalida = ahora.toLocaleTimeString('es-PE', {
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false
+    });
 
-        if (hora >= 5 && hora < 23) {
+    estadoMarcaciones[t.id].salida = horaSalida;
 
-            btnEstado.className =
-                "bg-green-600 text-white text-xs sm:text-sm font-bold px-4 py-2.5 rounded-xl flex items-center gap-2";
+    // =========================================
+    // OBTENER HORA ENTRADA LIMPIA
+    // =========================================
 
-            btnEstado.innerHTML =
-                `<i class="fa-solid fa-circle-check"></i> Laborando`;
+    const horaEntrada = ent.includes(" ")
+        ? ent.split(" ").pop()
+        : ent;
 
-        } else {
+    // =========================================
+    // CALCULAR HORAS TRABAJADAS
+    // =========================================
 
-            btnEstado.className =
-                "bg-red-600 text-white text-xs sm:text-sm font-bold px-4 py-2.5 rounded-xl flex items-center gap-2";
+    const hN = calcularDiferenciaHoras(
+        horaEntrada,
+        horaSalida
+    );
 
-            btnEstado.innerHTML =
-                `<i class="fa-solid fa-lock"></i> No Laborando`;
-        }
-    }
+    const nA = (parseFloat(t.horas) || 0) + hN;
 
-    // =========================================================
-    // SELECTORES
-    // =========================================================
+    t.horas = nA;
 
-    function inicializarSelectoresModal() {
+    // =========================================
+    // CALCULAR PAGOS
+    // =========================================
 
-        const selInHora = document.getElementById("inHora");
-        const selOutHora = document.getElementById("outHora");
+    const pH = (parseFloat(t.sueldo_base) || 0) / 62;
 
-        const selInMin = document.getElementById("inMinuto");
-        const selOutMin = document.getElementById("outMinuto");
+    const pS = pH * nA;
 
-        for(let i = 1; i <= 12; i++) {
+    datosAsistencia[t.id] = {
 
-            const h = String(i).padStart(2, '0');
+        horas: parseFloat(nA.toFixed(4)),
 
-            selInHora.innerHTML += `<option value="${h}">${h}</option>`;
-            selOutHora.innerHTML += `<option value="${h}">${h}</option>`;
-        }
+        pago_hora: parseFloat(pH.toFixed(2)),
 
-        for(let i = 0; i < 60; i++) {
+        pago_semanal: parseFloat(pS.toFixed(2))
 
-            const m = String(i).padStart(2, '0');
+    };
 
-            selInMin.innerHTML += `<option value="${m}">${m}</option>`;
-            selOutMin.innerHTML += `<option value="${m}">${m}</option>`;
-        }
-    }
+    localStorage.setItem(
+        'datosAsistencia_v1',
+        JSON.stringify(datosAsistencia)
+    );
 
-    // =========================================================
-    // CARGAR
-    // =========================================================
+    try {
 
-    async function cargarTrabajadores() {
+        // =========================================
+        // ACTUALIZAR TRABAJADOR
+        // =========================================
 
-        try {
+        await fetch(`${API_URL}/${t.id}`, {
 
-            const response = await fetch(API_URL);
+            method: "PUT",
 
-            if(response.ok) {
+            headers: {
+                "Content-Type": "application/json"
+            },
 
-                trabajadores = await response.json();
+            body: JSON.stringify({
 
-                renderizarTabla();
-            }
+                ...t,
 
-        } catch(error) {
+                horas: parseFloat(nA.toFixed(4)),
 
-            console.error(error);
-        }
-    }
+                pago_hora: parseFloat(pH.toFixed(2)),
 
-    // =========================================================
-    // FORMATO HORAS
-    // =========================================================
+                pago_semanal: parseFloat(pS.toFixed(2))
 
-    function formatearHorasAcumuladas(horasDecimales) {
+            })
 
-        const totalMinutos = Math.round(
-            (parseFloat(horasDecimales) || 0) * 60
-        );
-
-        const hrs = Math.floor(totalMinutos / 60);
-
-        const mins = totalMinutos % 60;
-
-        return `${String(hrs).padStart(2, '0')}h y ${String(mins).padStart(2, '0')}min`;
-    }
-
-    // =========================================================
-    // TABLA
-    // =========================================================
-
-    function renderizarTabla() {
-
-        const tbody = document.getElementById("tablaAsistencia");
-
-        tbody.innerHTML = "";
-
-        const buscador = document.getElementById("buscador")
-            .value
-            .toLowerCase();
-
-        let count = 0;
-
-        trabajadores.forEach((t) => {
-
-            const nombreCompleto =
-                `${t.apellidos}, ${t.nombres}`;
-
-            if (
-                buscador &&
-                !nombreCompleto.toLowerCase().includes(buscador) &&
-                !t.dni.includes(buscador)
-            ) return;
-
-            count++;
-
-            if(!estadoMarcaciones[t.id]) {
-
-                estadoMarcaciones[t.id] = {
-                    entrada: "--:--",
-                    salida: "--:--"
-                };
-            }
-
-            let badgeColor =
-                t.area_trabajo === 'maquinista'
-                ? 'bg-purple-50 text-purple-700'
-                : t.area_trabajo === 'manual'
-                ? 'bg-amber-50 text-amber-700'
-                : 'bg-blue-50 text-blue-700';
-
-            const tr = document.createElement("tr");
-
-            tr.innerHTML = `
-                <td class="py-4 px-6 text-center">${count}</td>
-
-                <td class="py-4 px-6 font-semibold">
-                    ${nombreCompleto}
-                </td>
-
-                <td class="py-4 px-6">
-                    <span class="${badgeColor} text-xs px-2 py-1 rounded-lg capitalize">
-                        ${t.area_trabajo}
-                    </span>
-                </td>
-
-                <td class="py-4 px-6 text-center font-mono">
-                    ${estadoMarcaciones[t.id].entrada}
-                </td>
-
-                <td class="py-4 px-6 text-center font-mono">
-                    ${estadoMarcaciones[t.id].salida}
-                </td>
-
-                <td class="py-4 px-6 text-center font-bold text-blue-600">
-                    ${formatearHorasAcumuladas(t.horas)}
-                </td>
-
-                <td class="py-4 px-6 text-center">
-                    <div class="flex justify-center gap-2">
-
-                        <button class="btn-entrada px-3 py-2 bg-blue-500 text-white rounded-lg text-xs">
-                            Entrada
-                        </button>
-
-                        <button class="btn-salida px-3 py-2 bg-green-500 text-white rounded-lg text-xs">
-                            Salida
-                        </button>
-
-                    </div>
-                </td>
-
-                <td class="py-4 px-6 text-center">
-
-                    <button class="btn-ajuste p-2 bg-amber-500 text-white rounded-lg">
-                        <i class="fa-solid fa-pen"></i>
-                    </button>
-
-                </td>
-            `;
-
-            tr.querySelector(".btn-entrada")
-                .addEventListener("click", () => marcarEntrada(t.id));
-
-            tr.querySelector(".btn-salida")
-                .addEventListener("click", () => marcarSalida(t.id));
-
-            tr.querySelector(".btn-ajuste")
-                .addEventListener("click", () => abrirModalEdicion(t.id));
-
-            tbody.appendChild(tr);
         });
-    }
 
-    // =========================================================
-    // FILTRO
-    // =========================================================
+        // =========================================
+        // GUARDAR ASISTENCIA EN POSTGRES
+        // =========================================
 
-    function filtrarTrabajadores() {
-        renderizarTabla();
-    }
+        await fetch("http://localhost:3000/api/asistencias", {
 
-    // =========================================================
-    // MODAL
-    // =========================================================
+            method: "POST",
 
-    function toggleModal(id) {
-        document.getElementById(id).classList.toggle("hidden");
-    }
+            headers: {
+                "Content-Type": "application/json"
+            },
 
-    // =========================================================
-    // TOAST
-    // =========================================================
+            body: JSON.stringify({
 
-    function mostrarNotificacionToast(msg) {
+                trabajador_id: t.id,
 
-        const container = document.getElementById("toastContainer");
+                fecha: fechaActual,
 
-        const toast = document.createElement("div");
+                hora_entrada: horaEntrada,
 
-        toast.className =
-            "bg-slate-900 text-white px-5 py-3 rounded-xl";
+                hora_salida: horaSalida,
 
-        toast.innerHTML = msg;
+                horas_trabajadas: parseFloat(hN.toFixed(2)),
 
-        container.appendChild(toast);
+                estado: "presente"
 
-        setTimeout(() => {
-            toast.remove();
-        }, 3000);
-    }
+            })
 
-    // =========================================================
-    // FECHA
-    // =========================================================
+        });
 
-    function obtenerFechaHoraTiempoReal() {
-
-        const ahora = new Date();
-
-        const dia = String(
-            ahora.getDate()
-        ).padStart(2, '0');
-
-        const mes = String(
-            ahora.getMonth() + 1
-        ).padStart(2, '0');
-
-        const anio = ahora.getFullYear();
-
-        let hrs = ahora.getHours();
-
-        const mins = String(
-            ahora.getMinutes()
-        ).padStart(2, '0');
-
-        const periodo = hrs >= 12 ? 'PM' : 'AM';
-
-        hrs = hrs % 12;
-        hrs = hrs ? hrs : 12;
-
-        return `${dia}/${mes}/${anio} ${String(hrs).padStart(2,'0')}:${mins} ${periodo}`;
-    }
-
-    // =========================================================
-    // GUARDAR DASHBOARD
-    // =========================================================
-
-    function guardarDashboard(data) {
-
-        dashboardData.asistencias.push(data);
-
-        dashboardData.totalHoras += data.horas;
-
-        if(data.tipo === "entrada") {
-            dashboardData.totalEntradas++;
-        }
-
-        if(data.tipo === "salida") {
-            dashboardData.totalSalidas++;
-        }
-
-        localStorage.setItem(
-            'dashboardData_v1',
-            JSON.stringify(dashboardData)
-        );
-    }
-
-    // =========================================================
-    // ENTRADA
-    // =========================================================
-
-    function marcarEntrada(id) {
-
-        const t = trabajadores.find(x => x.id === id);
-
-        const fechaHora = obtenerFechaHoraTiempoReal();
-
-        estadoMarcaciones[t.id].entrada = fechaHora;
-
-        estadoMarcaciones[t.id].salida = "--:--";
+        // =========================================
+        // GUARDAR ESTADO LOCAL
+        // =========================================
 
         localStorage.setItem(
             'estadoMarcaciones_v4',
             JSON.stringify(estadoMarcaciones)
         );
+
+        // =========================================
+        // DASHBOARD
+        // =========================================
 
         guardarDashboard({
+
             trabajador: `${t.nombres} ${t.apellidos}`,
-            fecha: fechaHora,
-            tipo: "entrada",
-            horas: 0
+
+            fecha: fechaActual,
+
+            tipo: "salida",
+
+            horas: hN
+
         });
 
+        // =========================================
+        // MENSAJE
+        // =========================================
+
         mostrarNotificacionToast(
-            `Entrada registrada para ${t.nombres}`
+            "Salida guardada correctamente"
         );
+
+        // =========================================
+        // ACTUALIZAR TABLA
+        // =========================================
 
         renderizarTabla();
-    }
 
-    // =========================================================
-    // SALIDA
-    // =========================================================
+    } catch (e) {
 
-    async function marcarSalida(id) {
+        console.error("Error al registrar salida:", e);
 
-        const t = trabajadores.find(x => x.id === id);
-
-        const entrada = estadoMarcaciones[t.id].entrada;
-
-        if(entrada === "--:--") {
-
-            alert("Primero registra entrada");
-            return;
-        }
-
-        const salida = obtenerFechaHoraTiempoReal();
-
-        estadoMarcaciones[t.id].salida = salida;
-
-        const entradaHora =
-            entrada.split(" ").slice(1).join(" ");
-
-        const salidaHora =
-            salida.split(" ").slice(1).join(" ");
-
-        const horasNuevas =
-            calcularDiferenciaHoras(
-                entradaHora,
-                salidaHora
-            );
-
-        const nuevoAcumulado =
-            (parseFloat(t.horas) || 0) + horasNuevas;
-
-        t.horas = nuevoAcumulado;
-
-        try {
-
-            const response = await fetch(`${API_URL}/${t.id}`, {
-
-                method: "PUT",
-
-                headers: {
-                    "Content-Type": "application/json"
-                },
-
-                body: JSON.stringify({
-
-                    nombres: t.nombres,
-                    apellidos: t.apellidos,
-                    dni: t.dni,
-                    telefono: t.telefono,
-                    area_trabajo: t.area_trabajo,
-                    sueldo_base: parseFloat(t.sueldo_base),
-                    horas: parseFloat(
-                        nuevoAcumulado.toFixed(4)
-                    )
-                })
-            });
-
-            if(response.ok) {
-
-                localStorage.setItem(
-                    'estadoMarcaciones_v4',
-                    JSON.stringify(estadoMarcaciones)
-                );
-
-                guardarDashboard({
-                    trabajador: `${t.nombres} ${t.apellidos}`,
-                    fecha: salida,
-                    tipo: "salida",
-                    horas: horasNuevas
-                });
-
-                mostrarNotificacionToast(
-                    `Salida guardada correctamente`
-                );
-
-                renderizarTabla();
-            }
-
-        } catch(error) {
-
-            console.error(error);
-        }
-    }
-
-    // =========================================================
-    // MODAL EDICION
-    // =========================================================
-
-    function abrirModalEdicion(id) {
-
-        const t = trabajadores.find(x => x.id === id);
-
-        document.getElementById("editIndex").value = t.id;
-
-        document.getElementById("editTrabajadorNombre").value =
-            `${t.apellidos}, ${t.nombres}`;
-
-        toggleModal("modalEditarHoras");
-    }
-
-    // =========================================================
-    // GUARDAR AJUSTES
-    // =========================================================
-
-    async function guardarCorreccionHoras(e) {
-
-        e.preventDefault();
-
-        const id = document.getElementById("editIndex").value;
-
-        const t = trabajadores.find(
-            x => String(x.id) === String(id)
+        mostrarNotificacionToast(
+            "Error al guardar asistencia"
         );
 
-        const entrada =
-            `${document.getElementById("inHora").value}:` +
-            `${document.getElementById("inMinuto").value} ` +
-            `${document.getElementById("inPeriodo").value}`;
-
-        const salida =
-            `${document.getElementById("outHora").value}:` +
-            `${document.getElementById("outMinuto").value} ` +
-            `${document.getElementById("outPeriodo").value}`;
-
-        const nuevasHoras =
-            calcularDiferenciaHoras(
-                entrada,
-                salida
-            );
-
-        const fechaHoy = new Date()
-            .toLocaleDateString('es-PE');
-
-        estadoMarcaciones[t.id].entrada =
-            `${fechaHoy} ${entrada}`;
-
-        estadoMarcaciones[t.id].salida =
-            `${fechaHoy} ${salida}`;
-
-        localStorage.setItem(
-            'estadoMarcaciones_v4',
-            JSON.stringify(estadoMarcaciones)
-        );
-
-        t.horas = nuevasHoras;
-
-        try {
-
-            const response = await fetch(`${API_URL}/${t.id}`, {
-
-                method: "PUT",
-
-                headers: {
-                    "Content-Type": "application/json"
-                },
-
-                body: JSON.stringify({
-
-                    nombres: t.nombres,
-                    apellidos: t.apellidos,
-                    dni: t.dni,
-                    telefono: t.telefono,
-                    area_trabajo: t.area_trabajo,
-                    sueldo_base: parseFloat(t.sueldo_base),
-                    horas: parseFloat(
-                        nuevasHoras.toFixed(4)
-                    )
-                })
-            });
-
-            if(response.ok) {
-
-                guardarDashboard({
-                    trabajador: `${t.nombres} ${t.apellidos}`,
-                    fecha: fechaHoy,
-                    tipo: "ajuste",
-                    horas: nuevasHoras
-                });
-
-                toggleModal("modalEditarHoras");
-
-                mostrarNotificacionToast(
-                    "Ajuste guardado correctamente"
-                );
-
-                renderizarTabla();
-            }
-
-        } catch(error) {
-
-            console.error(error);
-        }
     }
 
-    // =========================================================
-    // REINICIAR
-    // =========================================================
-
-    function ejecutarReinicioDiario() {
-
-        trabajadores.forEach(t => {
-
-            estadoMarcaciones[t.id] = {
-                entrada: "--:--",
-                salida: "--:--"
+}
+function abrirModalEdicion(id) {
+    const t = trabajadores.find(x => x.id === id); document.getElementById("editIndex").value = t.id;
+    document.getElementById("editTrabajadorNombre").value = `${t.apellidos}, ${t.nombres}`; toggleModal("modalEditarHoras");
+}
+async function guardarCorreccionHoras(e) {
+    e.preventDefault();
+    const id = document.getElementById("editIndex").value, t = trabajadores.find(x => String(x.id) === String(id));
+    const ent = `${document.getElementById("inHora").value}:${document.getElementById("inMinuto").value} ${document.getElementById("inPeriodo").value}`;
+    const sal = `${document.getElementById("outHora").value}:${document.getElementById("outMinuto").value} ${document.getElementById("outPeriodo").value}`;
+    const nH = calcularDiferenciaHoras(ent, sal), fH = new Date().toLocaleDateString('es-PE');
+    estadoMarcaciones[t.id].entrada = `${fH} ${ent}`; estadoMarcaciones[t.id].salida = `${fH} ${sal}`;
+    localStorage.setItem('estadoMarcaciones_v4', JSON.stringify(estadoMarcaciones));
+    t.horas = nH; const pH = (parseFloat(t.sueldo_base) || 0) / 62, pS = pH * nH;
+    datosAsistencia[t.id] = { horas: parseFloat(nH.toFixed(4)), pago_hora: parseFloat(pH.toFixed(2)), pago_semanal: parseFloat(pS.toFixed(2)) };
+    localStorage.setItem('datosAsistencia_v1', JSON.stringify(datosAsistencia));
+    try {
+        const res = await fetch(`${API_URL}/${t.id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...t, horas: parseFloat(nH.toFixed(4)), pago_hora: parseFloat(pH.toFixed(2)), pago_semanal: parseFloat(pS.toFixed(2)) }) });
+        if(res.ok) { guardarDashboard({ trabajador: `${t.nombres} ${t.apellidos}`, fecha: fH, tipo: "ajuste", horas: nH }); toggleModal("modalEditarHoras"); mostrarNotificacionToast("Ajuste guardado"); renderizarTabla(); }
+    } catch(e) { console.error(e); }
+}
+async function ejecutarReinicioDiario() {
+    try {
+        // 1. Iteramos sobre cada trabajador para resetear sus valores
+        for (const t of trabajadores) {
+            // Reiniciamos marcas visuales
+            estadoMarcaciones[t.id] = { entrada: "--:--", salida: "--:--" };
+            
+            // Reiniciamos valores de acumulado
+            t.horas = 0;
+            t.pago_semanal = 0;
+            
+            // Actualizamos la base de datos local
+            datosAsistencia[t.id] = { 
+                horas: 0, 
+                pago_hora: parseFloat(t.pago_hora) || 0, 
+                pago_semanal: 0 
             };
-        });
 
-        localStorage.setItem(
-            'estadoMarcaciones_v4',
-            JSON.stringify(estadoMarcaciones)
-        );
+            // 2. Enviamos la actualización al servidor para que el cambio sea persistente
+            await fetch(`${API_URL}/${t.id}`, { 
+                method: "PUT", 
+                headers: { "Content-Type": "application/json" }, 
+                body: JSON.stringify(t) 
+            });
+        }
 
+        // 3. Guardamos los estados reseteados en localStorage
+        localStorage.setItem('estadoMarcaciones_v4', JSON.stringify(estadoMarcaciones));
+        localStorage.setItem('datosAsistencia_v1', JSON.stringify(datosAsistencia));
+
+        // 4. Finalizamos el proceso visual
         toggleModal('modalConfirmarReiniciar');
-
-        mostrarNotificacionToast(
-            "Marcaciones reiniciadas"
-        );
-
+        mostrarNotificacionToast("Jornada reiniciada: Horas y pagos a cero");
         renderizarTabla();
+        
+    } catch (error) {
+        console.error("Error al reiniciar el día:", error);
+        mostrarNotificacionToast("Error al intentar reiniciar el sistema");
     }
+}
 </script>
 </body>
 </html>

@@ -316,6 +316,86 @@ app.delete('/api/trabajadores/:id', async (req, res) => {
         });
     }
 });
+// =========================================================================
+// 8. LISTAR ASISTENCIAS
+// =========================================================================
+app.get('/api/asistencias', async (req, res) => {
+
+    try {
+
+        const result = await db.query(`
+            SELECT *
+            FROM asistencias
+            ORDER BY id DESC
+        `);
+
+        res.json(result.rows);
+
+    } catch (error) {
+
+        console.error("Error listar asistencias:", error);
+
+        res.status(500).json({
+            error: "Error al listar asistencias"
+        });
+
+    }
+
+});
+// =========================================================================
+// REGISTRAR ASISTENCIA
+// =========================================================================
+app.post('/api/asistencias', async (req, res) => {
+
+    const {
+        trabajador_id,
+        fecha,
+        hora_entrada,
+        hora_salida,
+        horas_trabajadas,
+        estado
+    } = req.body;
+
+    try {
+
+        const query = `
+            INSERT INTO asistencias
+            (
+                trabajador_id,
+                fecha,
+                hora_entrada,
+                hora_salida,
+                horas_trabajadas,
+                estado
+            )
+            VALUES ($1, $2, $3, $4, $5, $6)
+            RETURNING *
+        `;
+
+        const result = await db.query(query, [
+
+            trabajador_id,
+            fecha,
+            hora_entrada,
+            hora_salida,
+            horas_trabajadas,
+            estado
+
+        ]);
+
+        res.status(201).json(result.rows[0]);
+
+    } catch (error) {
+
+        console.error(error);
+
+        res.status(500).json({
+            error: "Error al guardar asistencia"
+        });
+
+    }
+
+});
 
 // =========================================================================
 // RUTA PRINCIPAL

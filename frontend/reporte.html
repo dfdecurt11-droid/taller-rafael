@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+
+    <meta charset="UTF-8" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>TALLER RAFAEL'S - Reportes</title>
+
+    <!-- Tailwind -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Fuente -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet" />
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+    <!-- jsPDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+    <!-- html2canvas -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+    <style>
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f1f5f9;
+        }
+
+        .glass-card {
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(12px);
+        }
+
+        .table-hover:hover {
+            background: #f8fafc;
+            transition: background 0.2s;
+        }
+
+        .custom-scroll::-webkit-scrollbar {
+            height: 6px;
+        }
+
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 999px;
+        }
+
+        .reporte {
+            width: 900px;
+            background: white;
+            padding: 40px;
+            color: #0f172a;
+        }
+
+        .titulo {
+            font-size: 30px;
+            font-weight: 900;
+            color: #1e3a8a;
+        }
+
+        .subtitulo {
+            color: #64748b;
+            margin-top: 5px;
+        }
+
+        .card {
+            border: 1px solid #e2e8f0;
+            border-radius: 20px;
+            padding: 20px;
+            margin-top: 25px;
+        }
+
+        .tabla {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .tabla th {
+            background: #1e293b;
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-size: 13px;
+        }
+
+        .tabla td {
+            padding: 12px;
+            border-bottom: 1px solid #e2e8f0;
+            font-size: 13px;
+        }
+
+        .badge {
+            background: #dbeafe;
+            color: #1d4ed8;
+            padding: 5px 12px;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: bold;
+        }
+
+        .total {
+            margin-top: 25px;
+            text-align: right;
+            font-size: 22px;
+            font-weight: 900;
+            color: #059669;
+        }
+
+    </style>
+
+</head>
+
+<body class="text-slate-800 antialiased min-h-screen flex flex-col md:flex-row">
+<aside class="w-full md:w-72 bg-slate-950 text-white flex flex-col justify-between p-6 md:h-screen md:sticky md:top-0 border-r border-slate-800 shadow-2xl">
+
+    <div>
+        <div class="flex items-center gap-4 pb-8 border-b border-slate-800/60 mb-8">
+            <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-blue-600 to-blue-500 flex items-center justify-center shadow-lg shadow-blue-600/20">
+                <i class="fa-solid fa-screwdriver-wrench text-2xl text-white"></i>
+            </div>
+            <div>
+                <h1 class="font-black text-lg tracking-tight text-white">TALLER RAFAEL'S</h1>
+                <p class="text-xs text-slate-500 font-medium uppercase tracking-widest">Admin Panel</p>
+            </div>
+        </div>
+
+        <nav class="space-y-2">
+            <nav class="space-y-2">
+                <a href="dashboard.html" class="flex items-center gap-3 text-slate-400 hover:bg-slate-900/50 hover:text-white px-4 py-3.5 rounded-xl font-medium transition-all duration-300 group">
+                    <i class="fa-solid fa-chart-line w-5 text-slate-600 group-hover:text-blue-500 transition-colors"></i> 
+                    Dashboard
+                </a>
+
+                <a href="asistencia.html" class="flex items-center gap-3 text-slate-400 hover:bg-slate-900/50 hover:text-white px-4 py-3.5 rounded-xl font-medium transition-all duration-300 group">
+                    <i class="fa-solid fa-calendar-check w-5 text-slate-600 group-hover:text-blue-500 transition-colors"></i> 
+                    Asistencia
+                </a>
+
+                <a href="reporte.html" class="flex items-center gap-3 text-slate-400 hover:bg-slate-900/50 hover:text-white px-4 py-3.5 rounded-xl font-medium transition-all duration-300 group">
+                    <i class="fa-solid fa-file-invoice w-5 text-slate-600 group-hover:text-blue-500 transition-colors"></i> 
+                    Reportes
+                </a>
+            <div class="pt-4 mt-4 border-t border-slate-800/60">
+                <a href="index.html" class="flex items-center gap-3 text-red-500/80 hover:bg-red-500/10 hover:text-red-400 px-4 py-3.5 rounded-xl font-medium transition-all">
+                    <i class="fa-solid fa-right-from-bracket w-5"></i> 
+                    Cerrar Sesión
+                </a>
+            </div>
+        </nav>
+    </div>
+
+    <div class="hidden md:block">
+        <div class="bg-slate-900/50 border border-slate-800 rounded-2xl p-4 flex items-center justify-between">
+            <span class="text-xs font-bold text-slate-500 uppercase">Estado</span>
+            <div class="flex items-center gap-2 text-emerald-400 text-xs font-bold">
+                <span class="relative flex h-2 w-2">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                </span>
+                ONLINE
+            </div>
+        </div>
+    </div>
+</aside>
+
+    <!-- MAIN -->
+    <main class="flex-1 p-4 md:p-8 overflow-y-auto">
+
+        <header class="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
+
+            <div>
+
+                <h2 class="text-2xl font-black text-slate-900">
+                    Centro de Reportes
+                </h2>
+
+                <p class="text-slate-500">
+                    Gestión y descarga de información de personal
+                </p>
+
+            </div>
+
+            <button onclick="generarReporteGeneral()"
+                class="bg-slate-900 text-white px-6 py-3 rounded-2xl font-bold hover:bg-slate-800 transition-all shadow-lg">
+
+                <i class="fa-solid fa-file-pdf mr-2"></i>
+
+                Generar Reporte General
+
+            </button>
+
+        </header>
+
+        <!-- TABLA -->
+        <section class="glass-card border border-slate-200 rounded-3xl shadow-sm overflow-hidden">
+
+            <div class="overflow-x-auto custom-scroll">
+
+                <table class="w-full text-left border-collapse">
+
+                    <thead>
+
+                        <tr class="bg-slate-50 text-[11px] uppercase tracking-wider text-slate-500 font-black">
+
+                            <th class="py-5 px-6">
+                                Trabajador
+                            </th>
+
+                            <th class="py-5 px-6">
+                                DNI
+                            </th>
+
+                            <th class="py-5 px-6 text-center">
+                                Sueldo Base
+                            </th>
+
+                            <th class="py-5 px-6 text-center">
+                                Acciones
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody id="tablaReportes" class="divide-y divide-slate-100"></tbody>
+
+                </table>
+
+            </div>
+
+        </section>
+
+    </main>
+
+<script>
+
+    // =========================================
+    // APIs
+    // =========================================
+
+    const API_URL = "http://localhost:3000/api/trabajadores";
+
+    const API_ASISTENCIAS = "http://localhost:3000/api/asistencias";
+
+    let trabajadoresGlobal = [];
+
+    // =========================================
+    // CARGAR DATOS
+    // =========================================
+
+    async function cargarDatos() {
+
+        try {
+
+            const response = await fetch(API_URL);
+
+            const trabajadores = await response.json();
+
+            trabajadoresGlobal = trabajadores;
+
+            renderizarTabla(trabajadores);
+
+        } catch (error) {
+
+            console.error("Error al cargar trabajadores:", error);
+
+        }
+
+    }
+
+    // =========================================
+    // RENDERIZAR TABLA
+    // =========================================
+
+    function renderizarTabla(trabajadores) {
+
+        const tbody = document.getElementById("tablaReportes");
+
+        tbody.innerHTML = trabajadores.map(t => `
+
+            <tr class="table-hover">
+
+                <td class="py-5 px-6">
+
+                    <div class="font-semibold text-slate-900">
+                        ${t.apellidos}, ${t.nombres}
+                    </div>
+
+                    <div class="text-[10px] text-blue-600 font-bold uppercase tracking-wide mt-0.5">
+                        ${t.area_trabajo}
+                    </div>
+
+                </td>
+
+                <td class="py-5 px-6 font-mono text-slate-600">
+                    ${t.dni}
+                </td>
+
+                <td class="py-5 px-6 text-center font-bold text-emerald-600">
+                    S/. ${parseFloat(t.sueldo_base || 0).toFixed(2)}
+                </td>
+
+                <td class="py-5 px-6 text-center">
+
+                    <button
+                        onclick="generarReporteIndividual('${t.dni}')"
+                        class="bg-blue-100 text-blue-700 px-4 py-2 rounded-lg text-[12px] font-bold hover:bg-blue-200 transition-all">
+
+                        <i class="fa-solid fa-download mr-1"></i>
+
+                        Reporte Individual
+
+                    </button>
+
+                </td>
+
+            </tr>
+
+        `).join('');
+
+    }
+
+    // =========================================
+    // CALCULAR HORAS
+    // =========================================
+
+    function calcularHoras(entrada, salida) {
+
+        if (!entrada || !salida) return 0;
+
+        const [h1, m1] = entrada.split(":").map(Number);
+
+        const [h2, m2] = salida.split(":").map(Number);
+
+        const inicio = h1 + (m1 / 60);
+
+        const fin = h2 + (m2 / 60);
+
+        const horas = fin - inicio;
+
+        return horas > 0 ? horas.toFixed(2) : 0;
+
+    }
+
+    // =========================================
+    // REPORTE GENERAL
+    // =========================================
+
+    async function generarReporteGeneral() {
+
+        try {
+
+            const { jsPDF } = window.jspdf;
+
+            let total = 0;
+
+            trabajadoresGlobal.forEach(t => {
+
+                total += parseFloat(t.sueldo_base || 0);
+
+            });
+
+            const contenedor = document.createElement("div");
+
+            contenedor.classList.add("reporte");
+
+            contenedor.style.position = "absolute";
+
+            contenedor.style.left = "-9999px";
+
+            contenedor.innerHTML = `
+
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+
+                    <div>
+
+                        <div class="titulo">
+                            REPORTE GENERAL
+                        </div>
+
+                        <div class="subtitulo">
+                            Taller Rafael's - Sistema Administrativo
+                        </div>
+
+                    </div>
+
+                    <div style="font-size:70px; color:#2563eb;">
+                        <i class="fa-solid fa-file-lines"></i>
+                    </div>
+
+                </div>
+
+                <div class="card">
+
+                    <div style="display:flex; justify-content:space-between;">
+
+                        <div>
+                            <strong>Total Trabajadores:</strong>
+                            ${trabajadoresGlobal.length}
+                        </div>
+
+                        <div>
+                            <strong>Fecha:</strong>
+                            ${new Date().toLocaleDateString()}
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <table class="tabla">
+
+                    <thead>
+
+                        <tr>
+
+                            <th>Trabajador</th>
+
+                            <th>DNI</th>
+
+                            <th>Área</th>
+
+                            <th>Sueldo</th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                        ${trabajadoresGlobal.map(t => `
+
+                            <tr>
+
+                                <td>${t.apellidos}, ${t.nombres}</td>
+
+                                <td>${t.dni}</td>
+
+                                <td>
+
+                                    <span class="badge">
+                                        ${t.area_trabajo}
+                                    </span>
+
+                                </td>
+
+                                <td>
+                                    S/. ${parseFloat(t.sueldo_base || 0).toFixed(2)}
+                                </td>
+
+                            </tr>
+
+                        `).join('')}
+
+                    </tbody>
+
+                </table>
+
+                <div class="total">
+
+                    TOTAL PLANILLA: S/. ${total.toFixed(2)}
+
+                </div>
+
+            `;
+
+            document.body.appendChild(contenedor);
+
+            const canvas = await html2canvas(contenedor, {
+
+                scale: 2
+
+            });
+
+            const imgData = canvas.toDataURL("image/png");
+
+            const pdf = new jsPDF('p', 'mm', 'a4');
+
+            const width = 190;
+
+            const height = canvas.height * width / canvas.width;
+
+            pdf.addImage(imgData, 'PNG', 10, 10, width, height);
+
+            pdf.save("Reporte-General.pdf");
+
+            document.body.removeChild(contenedor);
+
+        } catch (error) {
+
+            console.error(error);
+
+            alert("Error al generar reporte general");
+
+        }
+
+    }
+
+    // =========================================
+    // REPORTE INDIVIDUAL
+    // =========================================
+
+    async function generarReporteIndividual(dni) {
+
+        try {
+
+            const trabajador = trabajadoresGlobal.find(t => t.dni == dni);
+
+            if (!trabajador) {
+
+                alert("Trabajador no encontrado");
+
+                return;
+
+            }
+
+            // =====================================
+            // OBTENER ASISTENCIAS
+            // =====================================
+
+            let asistenciaTrabajador = [];
+
+            try {
+
+                const responseAsistencia = await fetch(API_ASISTENCIAS);
+
+                const asistencias = await responseAsistencia.json();
+
+                asistenciaTrabajador = asistencias.filter(a => a.dni == dni);
+
+            } catch (error) {
+
+                console.log("No se pudieron cargar asistencias");
+
+            }
+
+            // =====================================
+            // CALCULAR PAGO POR HORA
+            // =====================================
+
+            const sueldoBase = parseFloat(trabajador.sueldo_base || 0);
+
+            const pagoPorHora = sueldoBase / 30 / 8;
+
+            let totalHoras = 0;
+
+            let totalGanado = 0;
+
+            // =====================================
+            // FILAS TABLA
+            // =====================================
+
+            let filasAsistencia = "";
+
+            if (asistenciaTrabajador.length > 0) {
+
+                filasAsistencia = asistenciaTrabajador.map(a => {
+
+                    const entrada = a.hora_entrada || "00:00";
+
+                    const salida = a.hora_salida || "00:00";
+
+                    const horas = parseFloat(
+                        calcularHoras(entrada, salida)
+                    ) || 0;
+
+                    const ganado = horas * pagoPorHora;
+
+                    totalHoras += horas;
+
+                    totalGanado += ganado;
+
+                    return `
+
+                        <tr>
+
+                            <td>${a.fecha || "-"}</td>
+
+                            <td>${entrada}</td>
+
+                            <td>${salida}</td>
+
+                            <td>${horas.toFixed(2)} hrs</td>
+
+                            <td>S/. ${ganado.toFixed(2)}</td>
+
+                        </tr>
+
+                    `;
+
+                }).join('');
+
+            } else {
+
+                filasAsistencia = `
+
+                    <tr>
+
+                        <td colspan="5"
+                            style="
+                                text-align:center;
+                                padding:20px;
+                                color:#64748b;
+                            ">
+
+                            No existen asistencias registradas
+
+                        </td>
+
+                    </tr>
+
+                `;
+
+            }
+
+            // =====================================
+            // CREAR CONTENEDOR
+            // =====================================
+
+            const contenedor = document.createElement("div");
+
+            contenedor.classList.add("reporte");
+
+            contenedor.style.position = "absolute";
+
+            contenedor.style.left = "-9999px";
+
+            contenedor.innerHTML = `
+
+                <div style="text-align:center;">
+
+                    <div class="titulo">
+                        REPORTE INDIVIDUAL
+                    </div>
+
+                    <div class="subtitulo">
+                        Información del Trabajador
+                    </div>
+
+                </div>
+
+                <!-- DATOS -->
+
+                <div class="card">
+
+                    <div style="
+                        display:grid;
+                        grid-template-columns:1fr 1fr;
+                        gap:20px;
+                    ">
+
+                        <div>
+
+                            <strong>Apellidos:</strong><br>
+
+                            ${trabajador.apellidos || "-"}
+
+                        </div>
+
+                        <div>
+
+                            <strong>Nombres:</strong><br>
+
+                            ${trabajador.nombres || "-"}
+
+                        </div>
+
+                        <div>
+
+                            <strong>DNI:</strong><br>
+
+                            ${trabajador.dni || "-"}
+
+                        </div>
+
+                        <div>
+
+                            <strong>Área:</strong><br>
+
+                            ${trabajador.area_trabajo || "-"}
+
+                        </div>
+
+                        <div>
+
+                            <strong>Sueldo Base:</strong><br>
+
+                            <span style="
+                                font-size:28px;
+                                color:#059669;
+                                font-weight:900;
+                            ">
+
+                                S/. ${sueldoBase.toFixed(2)}
+
+                            </span>
+
+                        </div>
+
+                        <div>
+
+                            <strong>Fecha Reporte:</strong><br>
+
+                            ${new Date().toLocaleDateString()}
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <!-- TABLA -->
+
+                <div class="card">
+
+                    <div style="
+                        display:flex;
+                        justify-content:space-between;
+                        align-items:center;
+                        margin-bottom:20px;
+                    ">
+
+                        <div style="
+                            font-size:22px;
+                            font-weight:900;
+                            color:#1e293b;
+                        ">
+
+                            Registro de Asistencia
+
+                        </div>
+
+                        <div class="badge">
+
+                            TIEMPO REAL
+
+                        </div>
+
+                    </div>
+
+                    <table class="tabla">
+
+                        <thead>
+
+                            <tr>
+
+                                <th>Fecha</th>
+
+                                <th>Hora Entrada</th>
+
+                                <th>Hora Salida</th>
+
+                                <th>Horas</th>
+
+                                <th>Ganado</th>
+
+                            </tr>
+
+                        </thead>
+
+                        <tbody>
+
+                            ${filasAsistencia}
+
+                        </tbody>
+
+                    </table>
+
+                    <!-- TOTALES -->
+
+                    <div style="
+                        margin-top:25px;
+                        display:flex;
+                        gap:20px;
+                    ">
+
+                        <div style="
+                            flex:1;
+                            background:#eff6ff;
+                            padding:20px;
+                            border-radius:20px;
+                        ">
+
+                            <div style="
+                                color:#2563eb;
+                                font-size:13px;
+                                font-weight:700;
+                                text-transform:uppercase;
+                            ">
+
+                                Total Horas
+
+                            </div>
+
+                            <div style="
+                                margin-top:10px;
+                                font-size:32px;
+                                font-weight:900;
+                            ">
+
+                                ${totalHoras.toFixed(2)} hrs
+
+                            </div>
+
+                        </div>
+
+                        <div style="
+                            flex:1;
+                            background:#ecfdf5;
+                            padding:20px;
+                            border-radius:20px;
+                        ">
+
+                            <div style="
+                                color:#059669;
+                                font-size:13px;
+                                font-weight:700;
+                                text-transform:uppercase;
+                            ">
+
+                                Total Ganado
+
+                            </div>
+
+                            <div style="
+                                margin-top:10px;
+                                font-size:32px;
+                                font-weight:900;
+                                color:#065f46;
+                            ">
+
+                                S/. ${totalGanado.toFixed(2)}
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            `;
+
+            document.body.appendChild(contenedor);
+
+            // =====================================
+            // GENERAR PDF
+            // =====================================
+
+            const canvas = await html2canvas(contenedor, {
+
+                scale: 2
+
+            });
+
+            const imgData = canvas.toDataURL("image/png");
+
+            const { jsPDF } = window.jspdf;
+
+            const pdf = new jsPDF("p", "mm", "a4");
+
+            const pdfWidth = 190;
+
+            const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+
+            pdf.addImage(
+                imgData,
+                "PNG",
+                10,
+                10,
+                pdfWidth,
+                pdfHeight
+            );
+
+            pdf.save(`Reporte-${trabajador.dni}.pdf`);
+
+            document.body.removeChild(contenedor);
+
+        } catch (error) {
+
+            console.error(error);
+
+            alert("Error al generar reporte individual");
+
+        }
+
+    }
+
+    // =========================================
+    // INICIAR
+    // =========================================
+
+    cargarDatos();
+
+</script>
+
+</body>
+
+</html>

@@ -1,270 +1,550 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TALLER RAFAEL'S | Login Profesional</title>
-    <style>
-        /* CSS GLOBAL Y DE DISEÑO PROFESIONAL */
-        :root {
-            --primary-color: #3b82f6; 
-            --bg-color: #111827; 
-            --form-bg: #1f2937; 
-            --text-color: #f3f4f6;
-            --text-muted: #9ca3af;
-            --border-color: #374151;
-            --error-color: #ef4444;
-            --success-color: #10b981;
-            --font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-        }
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>TALLER RAFAEL'S | Sistema de Acceso</title>
 
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+<!-- Tipografía corporativa -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-        body {
-            font-family: var(--font-family);
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            padding: 20px;
-        }
+<style>
+/* ================================
+   VARIABLES GLOBALES (THEME)
+================================ */
+:root{
+    --primary:#2563eb;
+    --primary-hover:#1d4ed8;
+    --secondary:#374151;
 
-        /* Notificación Profesional */
-        #toast {
-            position: fixed; top: 20px; background: var(--success-color); color: white;
-            padding: 1rem 2rem; border-radius: 0.5rem; display: none; z-index: 10000;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.3); font-weight: bold;
-        }
+    --success:#10b981;
+    --danger:#ef4444;
 
-        #welcome-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(17, 24, 39, 0.95);
-            display: none; flex-direction: column;
-            justify-content: center; align-items: center;
-            z-index: 9999; text-align: center;
-        }
-        .welcome-box h2 { color: var(--success-color); font-size: 2rem; margin-bottom: 1rem; }
-        .welcome-box p { color: var(--text-color); font-size: 1.2rem; }
+    --bg:#0f172a;
+    --card:#111827;
+    --input:#1f2937;
+    --border:#334155;
 
-        #main-container { width: 100%; max-width: 400px; }
-        .section { display: none; background-color: var(--form-bg); padding: 2.5rem; border-radius: 1rem; box-shadow: 0 10px 25px rgba(0,0,0,0.3); border: 1px solid var(--border-color); }
-        .section.active { display: block; }
+    --text:#f8fafc;
+    --muted:#94a3b8;
 
-        h1, h2 { text-align: center; margin-bottom: 1.5rem; color: var(--text-color); }
-        .profile-pic-container { display: flex; justify-content: center; margin-bottom: 1.5rem; position: relative; }
-        .profile-pic { width: 96px; height: 96px; border-radius: 50%; object-fit: cover; border: 4px solid var(--primary-color); box-shadow: 0 4px 10px rgba(0,0,0,0.2); background-color: #ccc; }
-        
-        .form-group { margin-bottom: 1rem; position: relative; }
-        .form-group label { display: block; margin-bottom: 0.5rem; color: var(--text-muted); font-size: 0.9rem; }
-        .form-control { width: 100%; padding: 0.75rem 1rem; border-radius: 0.5rem; border: 1px solid var(--border-color); background-color: transparent; color: var(--text-color); font-size: 1rem; transition: border-color 0.2s; }
-        
-        .toggle-password { position: absolute; right: 1rem; top: 2.3rem; cursor: pointer; background: none; border: none; color: var(--text-muted); font-size: 1.2rem; }
-        .toggle-password:hover { color: var(--text-color); }
-        
-        .btn-primary { width: 100%; padding: 0.75rem; border-radius: 0.5rem; border: none; background-color: var(--primary-color); color: white; font-size: 1rem; font-weight: 600; cursor: pointer; transition: background-color 0.2s; }
-        .btn-primary:hover { background-color: #2563eb; }
-        .btn-secondary { background-color: #4b5563; }
-        .btn-secondary:hover { background-color: #374151; }
+    --radius:18px;
+    --transition:.3s ease;
+    --shadow:0 20px 45px rgba(0,0,0,.35);
+}
 
-        .form-footer { margin-top: 1.5rem; text-align: center; }
-        .form-footer a { color: var(--primary-color); text-decoration: none; font-size: 0.9rem; }
-        .error-message { color: var(--error-color); font-size: 0.9rem; text-align: center; margin-top: -0.5rem; margin-bottom: 1rem; display: none; }
-        
-        #pin-view.active { display: flex !important; justify-content: center; align-items: center; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.8); z-index: 1000; }
-        #pin-content { background-color: var(--form-bg); padding: 2.5rem; border-radius: 1rem; width: 90%; max-width: 350px; text-align: center; }
-        #pin-blocker { display: none; color: var(--error-color); margin-top: 1rem; }
-        .custom-file-input { display: none; }
-        .file-upload-label { display: block; margin-top: 0.5rem; text-align: center; cursor: pointer; color: var(--primary-color); font-size: 0.9rem; }
-        .config-actions { margin-top: 1.5rem; display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+/* ================================
+   RESET GLOBAL
+================================ */
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
 
-        @media (max-width: 480px) {
-            .section { padding: 1.5rem; }
-            .profile-pic { width: 72px; height: 72px; }
-            .config-actions { grid-template-columns: 1fr; }
-        }
-    </style>
+body{
+    font-family:'Inter',sans-serif;
+    background:
+        radial-gradient(circle at top left,#1e3a8a 0%,transparent 30%),
+        radial-gradient(circle at bottom right,#0f766e 0%,transparent 25%),
+        var(--bg);
+
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    color:var(--text);
+    overflow:hidden;
+    padding:20px;
+}
+
+/* ================================
+   LAYOUT PRINCIPAL
+================================ */
+.container{
+    width:100%;
+    max-width:420px;
+}
+
+/* ================================
+   TARJETA PRINCIPAL
+================================ */
+.card{
+    background:rgba(17,24,39,.85);
+    backdrop-filter:blur(16px);
+    border:1px solid rgba(255,255,255,.08);
+    border-radius:var(--radius);
+    padding:35px;
+    box-shadow:var(--shadow);
+    animation:fadeIn .5s ease;
+}
+
+@keyframes fadeIn{
+    from{opacity:0; transform:translateY(15px);}
+    to{opacity:1; transform:translateY(0);}
+}
+
+/* ================================
+   HEADER / LOGO
+================================ */
+.logo{
+    text-align:center;
+    margin-bottom:25px;
+}
+
+.logo img{
+    width:90px;
+    height:90px;
+    object-fit:cover;
+    border-radius:50%;
+    border:4px solid var(--primary);
+    box-shadow:0 10px 25px rgba(37,99,235,.4);
+}
+
+.logo h1{
+    margin-top:15px;
+    font-size:1.5rem;
+    font-weight:700;
+}
+
+.logo p{
+    color:var(--muted);
+    font-size:.95rem;
+}
+
+/* ================================
+   FORMULARIOS
+================================ */
+.form-group{
+    margin-bottom:18px;
+}
+
+.form-group label{
+    display:block;
+    margin-bottom:8px;
+    color:var(--muted);
+    font-size:.9rem;
+}
+
+.input-wrapper{
+    position:relative;
+}
+
+.form-control{
+    width:100%;
+    padding:14px 16px;
+    border-radius:14px;
+    border:1px solid var(--border);
+    background:var(--input);
+    color:var(--text);
+    font-size:1rem;
+    transition:var(--transition);
+}
+
+.form-control:focus{
+    outline:none;
+    border-color:var(--primary);
+    box-shadow:0 0 0 4px rgba(37,99,235,.15);
+}
+
+/* ================================
+   BOTÓN TOGGLE PASSWORD
+================================ */
+.toggle-password{
+    position:absolute;
+    top:50%;
+    right:15px;
+    transform:translateY(-50%);
+    background:none;
+    border:none;
+    cursor:pointer;
+    color:var(--muted);
+}
+
+.toggle-password:hover{
+    color:var(--text);
+}
+
+/* ================================
+   BOTONES
+================================ */
+.btn{
+    width:100%;
+    padding:14px;
+    border:none;
+    border-radius:14px;
+    font-weight:600;
+    cursor:pointer;
+    transition:var(--transition);
+}
+
+.btn-primary{
+    background:linear-gradient(135deg,var(--primary),#3b82f6);
+    color:#fff;
+}
+
+.btn-primary:hover{
+    transform:translateY(-2px);
+    background:linear-gradient(135deg,var(--primary-hover),#2563eb);
+}
+
+.btn-secondary{
+    background:var(--secondary);
+    color:#fff;
+}
+
+.btn-secondary:hover{
+    background:#475569;
+}
+
+/* ================================
+   UTILIDADES
+================================ */
+.hidden{ display:none; }
+
+/* ================================
+   ALERTAS
+================================ */
+.alert{
+    padding:12px;
+    border-radius:12px;
+    margin-bottom:18px;
+    text-align:center;
+    display:none;
+}
+
+.alert-error{
+    background:rgba(239,68,68,.12);
+    border:1px solid rgba(239,68,68,.25);
+    color:#fca5a5;
+}
+
+/* ================================
+   FOOTER
+================================ */
+.footer{
+    text-align:center;
+    margin-top:20px;
+}
+
+.footer a{
+    color:var(--primary);
+    text-decoration:none;
+    font-size:.92rem;
+}
+
+/* ================================
+   TOAST NOTIFICACIÓN
+================================ */
+.toast{
+    position:fixed;
+    top:20px;
+    right:20px;
+    background:var(--success);
+    color:#fff;
+    padding:15px 22px;
+    border-radius:14px;
+    box-shadow:var(--shadow);
+    opacity:0;
+    transform:translateY(-20px);
+    transition:var(--transition);
+    z-index:9999;
+}
+
+.toast.show{
+    opacity:1;
+    transform:translateY(0);
+}
+
+/* ================================
+   OVERLAY (LOADING)
+================================ */
+.overlay{
+    position:fixed;
+    inset:0;
+    background:rgba(15,23,42,.92);
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    opacity:0;
+    pointer-events:none;
+    transition:var(--transition);
+}
+
+.overlay.active{
+    opacity:1;
+    pointer-events:auto;
+}
+
+.loader{
+    width:70px;
+    height:70px;
+    border:5px solid rgba(255,255,255,.1);
+    border-top:5px solid var(--primary);
+    border-radius:50%;
+    animation:spin 1s linear infinite;
+    margin-bottom:20px;
+}
+
+@keyframes spin{
+    to{ transform:rotate(360deg); }
+}
+
+/* ================================
+   RESPONSIVE
+================================ */
+@media(max-width:480px){
+    .card{ padding:28px 22px; }
+}
+</style>
 </head>
+
 <body>
 
-<div id="toast">✅ Cambios guardados correctamente</div>
+<!-- NOTIFICACIÓN -->
+<div class="toast" id="toast">✅ Configuración guardada correctamente</div>
 
-<div id="welcome-overlay">
-    <div class="welcome-box">
-        <h2>¡Bienvenido, al TALLER RAFAEL'S!</h2>
-        <p>Iniciando sesión en el sistema...</p>
-    </div>
+<!-- LOADING SYSTEM -->
+<div class="overlay" id="overlay">
+    <div class="loader"></div>
+    <h2>Bienvenido</h2>
+    <p>Ingresando al sistema...</p>
 </div>
 
-<div id="main-container">
-    <!-- Login View -->
-    <div id="login-view" class="section active">
-        <div class="profile-pic-container">
-            <img src="image.png" alt="Perfil" id="login-profile-pic" class="profile-pic" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
-            <div style="display:none; width:96px; height:96px; border-radius:50%; background-color:#374151; color:white; justify-content:center; align-items:center; font-size:2rem;">👤</div>
-        </div>
-        <h1>Iniciar Sesión</h1>
-        <p class="error-message" id="login-error">Usuario o contraseña incorrectos.</p>
-        <form id="login-form">
-            <div class="form-group">
-                <label for="login-email">Correo Electrónico</label>
-                <input type="email" id="login-email" class="form-control" placeholder="sandra@admin.com" required>
-            </div>
-            <div class="form-group">
-                <label for="login-password">Contraseña</label>
-                <input type="password" id="login-password" class="form-control" placeholder="••••••••" required>
-                <button type="button" class="toggle-password" data-target="login-password">👁️</button>
-            </div>
-            <button type="submit" class="btn-primary">Entrar</button>
-        </form>
-        <div class="form-footer">
-            <a href="#" id="goto-pin">Configuración ⚙️</a>
-        </div>
-    </div>
+<div class="container">
 
-    <!-- Pin View -->
-    <div id="pin-view" class="section">
-        <div id="pin-content">
-            <h2>Acceso a Configuración</h2>
-            <p style="color: var(--text-muted); margin-bottom: 1.5rem;" id="pin-hint">Ingresa tu PIN de 6 dígitos.</p>
-            <p class="error-message" id="pin-error" style="display:block;"></p>
-            <form id="pin-form">
-                <div class="form-group">
-                    <input type="password" id="security-pin" class="form-control" style="text-align: center; letter-spacing: 0.5em; font-size: 1.5rem;" maxlength="6" pattern="[0-9]*" inputmode="numeric" required>
+    <!-- ================= LOGIN ================= -->
+    <div class="card" id="loginView">
+
+        <div class="logo">
+            <img src="image.png" id="profileImage">
+            <h1>TALLER RAFAEL'S</h1>
+            <p>Sistema profesional de acceso</p>
+        </div>
+
+        <div class="alert alert-error" id="loginError">
+            Usuario o contraseña incorrectos
+        </div>
+
+        <form id="loginForm">
+
+            <div class="form-group">
+                <label>Correo electrónico</label>
+                <input type="email" id="email" class="form-control" placeholder="admin@taller.com" required>
+            </div>
+
+            <div class="form-group">
+                <label>Contraseña</label>
+
+                <div class="input-wrapper">
+                    <input type="password" id="password" class="form-control" placeholder="••••••••" required>
+
+                    <button type="button" class="toggle-password" data-target="password">👁️</button>
                 </div>
-                <button type="submit" class="btn-primary" id="pin-submit-btn">Verificar PIN</button>
-            </form>
-            <div id="pin-blocker">Has superado los intentos. Espera <span id="countdown">15</span> seg.</div>
-            <div class="form-footer"><a href="#" id="pin-back-to-login" style="color:var(--text-muted)">Cancelar</a></div>
+            </div>
+
+            <button class="btn btn-primary">Iniciar Sesión</button>
+        </form>
+
+        <div class="footer">
+            <a href="#" id="openConfig">Configuración ⚙️</a>
         </div>
     </div>
 
-    <!-- Config View -->
-    <div id="config-view" class="section">
-        <h2>Panel de Configuración</h2>
-        <form id="config-form">
-            <div class="profile-pic-container">
-                <img src="image.png" alt="Nuevo Perfil" id="config-profile-pic-preview" class="profile-pic" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
-                <div style="display:none; width:96px; height:96px; border-radius:50%; background-color:#374151; color:white; justify-content:center; align-items:center; font-size:2rem;">👤</div>
-                <input type="file" id="config-photo-input" class="custom-file-input" accept="image/*">
-                <label for="config-photo-input" class="file-upload-label">Cambiar foto 📷</label>
-            </div>
+    <!-- ================= CONFIG ================= -->
+    <div class="card hidden" id="configView">
+
+        <div class="logo">
+            <img src="image.png" id="configPreview">
+            <h1>Configuración</h1>
+            <p>Personaliza tu acceso</p>
+
+            <input type="file" id="photoInput" accept="image/*">
+        </div>
+
+        <div class="alert alert-error" id="pinError">PIN incorrecto</div>
+
+        <form id="configForm">
+
             <div class="form-group">
-                <label for="config-username">Nombre de Usuario</label>
-                <input type="text" id="config-username" class="form-control" value="sandra@admin.com">
+                <label>PIN de seguridad</label>
+                <input type="password" id="pin" class="form-control" maxlength="6">
             </div>
+
             <div class="form-group">
-                <label for="config-password">Nueva Contraseña</label>
-                <input type="password" id="config-password" class="form-control">
-                <button type="button" class="toggle-password" data-target="config-password">👁️</button>
+                <label>Nuevo usuario</label>
+                <input type="text" id="newUser" class="form-control">
             </div>
-            <div class="config-actions">
-                <button type="submit" class="btn-primary">Guardar</button>
-                <button type="button" id="config-exit" class="btn-primary btn-secondary">Salir</button>
+
+            <div class="form-group">
+                <label>Nueva contraseña</label>
+
+                <div class="input-wrapper">
+                    <input type="password" id="newPass" class="form-control">
+                    <button type="button" class="toggle-password" data-target="newPass">👁️</button>
+                </div>
             </div>
+
+            <div class="actions">
+                <button class="btn btn-primary">Guardar</button>
+                <button type="button" class="btn btn-secondary" id="closeConfig">Volver</button>
+            </div>
+
         </form>
+
     </div>
 </div>
 
 <script>
-    const CORRECT_USER = 'sandra@admin.com';
-    const CORRECT_PASS = 'Matyleoliam';
-    const CORRECT_PIN = '202611';
-    const MAX_PIN_ATTEMPTS = 3;
-    const LOCKOUT_SECONDS = 15;
-    let pinAttempts = 0;
 
-    const views = { login: document.getElementById('login-view'), pin: document.getElementById('pin-view'), config: document.getElementById('config-view') };
-    const loginProfilePic = document.getElementById('login-profile-pic');
+/* ================================
+   SISTEMA DE CREDENCIALES
+================================ */
+const authSystem = {
+    user: localStorage.getItem("user") || "sandra@admin.com",
+    pass: localStorage.getItem("pass") || "Matyleoliam",
+    pin: "202611"
+};
 
-    document.addEventListener('DOMContentLoaded', () => {
-        const savedPhoto = localStorage.getItem('profilePicture');
-        if (savedPhoto) {
-            loginProfilePic.src = savedPhoto;
-            document.getElementById('config-profile-pic-preview').src = savedPhoto;
-        }
+/* ================================
+   ELEMENTOS DOM
+================================ */
+const $ = (id) => document.getElementById(id);
+
+const ui = {
+    loginForm: $("loginForm"),
+    configForm: $("configForm"),
+    loginView: $("loginView"),
+    configView: $("configView"),
+    overlay: $("overlay"),
+    toast: $("toast"),
+    loginError: $("loginError"),
+    pinError: $("pinError"),
+    profileImage: $("profileImage"),
+    configPreview: $("configPreview")
+};
+
+/* ================================
+   INIT
+================================ */
+window.addEventListener("DOMContentLoaded", () => {
+    $("newUser").value = authSystem.user;
+
+    const photo = localStorage.getItem("photo");
+    if(photo){
+        ui.profileImage.src = photo;
+        ui.configPreview.src = photo;
+    }
+});
+
+/* ================================
+   TOAST
+================================ */
+const showToast = () => {
+    ui.toast.classList.add("show");
+    setTimeout(() => ui.toast.classList.remove("show"), 3000);
+};
+
+/* ================================
+   PASSWORD TOGGLE
+================================ */
+document.querySelectorAll(".toggle-password").forEach(btn => {
+    btn.addEventListener("click", () => {
+        const input = $(btn.dataset.target);
+        const isHidden = input.type === "password";
+
+        input.type = isHidden ? "text" : "password";
+        btn.textContent = isHidden ? "🙈" : "👁️";
     });
+});
 
-    function showView(viewId) {
-        Object.values(views).forEach(v => v.classList.remove('active'));
-        views[viewId].classList.add('active');
-        if(viewId === 'login') document.getElementById('pin-error').textContent = '';
+/* ================================
+   LOGIN SYSTEM
+================================ */
+ui.loginForm.addEventListener("submit", (e) => {
+    e.preventDefault();
+
+    const email = $("email").value;
+    const password = $("password").value;
+
+    if(email === authSystem.user && password === authSystem.pass){
+
+        ui.loginError.style.display = "none";
+        ui.overlay.classList.add("active");
+
+        setTimeout(() => {
+            window.location.href = "dashboard.html";
+        }, 2000);
+
+    } else {
+        ui.loginError.style.display = "block";
+    }
+});
+
+/* ================================
+   CONFIG VIEW
+================================ */
+$("openConfig").onclick = (e) => {
+    e.preventDefault();
+    ui.loginView.classList.add("hidden");
+    ui.configView.classList.remove("hidden");
+};
+
+$("closeConfig").onclick = () => {
+    ui.configView.classList.add("hidden");
+    ui.loginView.classList.remove("hidden");
+};
+
+/* ================================
+   IMAGE UPLOAD
+================================ */
+$("photoInput").addEventListener("change", (e) => {
+    const file = e.target.files[0];
+    if(!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+        ui.profileImage.src = ev.target.result;
+        ui.configPreview.src = ev.target.result;
+    };
+    reader.readAsDataURL(file);
+});
+
+/* ================================
+   SAVE CONFIG
+================================ */
+ui.configForm.addEventListener("submit", (e) => {
+    e.preventDefault();
+
+    const pin = $("pin").value;
+    if(pin !== authSystem.pin){
+        ui.pinError.style.display = "block";
+        return;
     }
 
-    function showToast() {
-        const toast = document.getElementById('toast');
-        toast.style.display = 'block';
-        setTimeout(() => toast.style.display = 'none', 3000);
+    ui.pinError.style.display = "none";
+
+    authSystem.user = $("newUser").value;
+    const newPass = $("newPass").value;
+
+    if(newPass.trim()){
+        authSystem.pass = newPass;
     }
 
-    document.querySelectorAll('.toggle-password').forEach(btn => {
-        btn.addEventListener('click', () => {
-            const input = document.getElementById(btn.getAttribute('data-target'));
-            const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
-            input.setAttribute('type', type);
-            btn.textContent = type === 'password' ? '👁️' : '🙈';
-        });
-    });
+    localStorage.setItem("user", authSystem.user);
+    localStorage.setItem("pass", authSystem.pass);
+    localStorage.setItem("photo", ui.configPreview.src);
 
-    document.getElementById('login-form').addEventListener('submit', (e) => {
-        e.preventDefault();
-        if (document.getElementById('login-email').value === CORRECT_USER && document.getElementById('login-password').value === CORRECT_PASS) {
-            document.getElementById('welcome-overlay').style.display = 'flex';
-            setTimeout(() => window.location.href = 'dashboard.html', 2000);
-        } else {
-            document.getElementById('login-error').style.display = 'block';
-        }
-    });
+    showToast();
 
-    document.getElementById('goto-pin').addEventListener('click', (e) => { e.preventDefault(); showView('pin'); });
-    document.getElementById('pin-back-to-login').addEventListener('click', (e) => { e.preventDefault(); showView('login'); });
+    setTimeout(() => {
+        ui.configView.classList.add("hidden");
+        ui.loginView.classList.remove("hidden");
+    }, 1500);
+});
 
-    document.getElementById('pin-form').addEventListener('submit', (e) => {
-        e.preventDefault();
-        const pinInput = document.getElementById('security-pin');
-        if (pinInput.value === CORRECT_PIN) {
-            showView('config');
-            pinInput.value = '';
-            pinAttempts = 0;
-        } else {
-            pinAttempts++;
-            const remaining = MAX_PIN_ATTEMPTS - pinAttempts;
-            if (remaining > 0) {
-                document.getElementById('pin-error').textContent = `PIN incorrecto. Te quedan ${remaining} intentos.`;
-            } else {
-                document.getElementById('pin-submit-btn').style.display = 'none';
-                document.getElementById('pin-blocker').style.display = 'block';
-                let timeLeft = LOCKOUT_SECONDS;
-                const timer = setInterval(() => {
-                    timeLeft--;
-                    document.getElementById('countdown').textContent = timeLeft;
-                    if (timeLeft <= 0) {
-                        clearInterval(timer);
-                        pinAttempts = 0;
-                        document.getElementById('pin-submit-btn').style.display = 'block';
-                        document.getElementById('pin-blocker').style.display = 'none';
-                        document.getElementById('pin-error').textContent = '';
-                    }
-                }, 1000);
-            }
-        }
-    });
-
-    document.getElementById('config-photo-input').addEventListener('change', (e) => {
-        const reader = new FileReader();
-        reader.onload = (ev) => document.getElementById('config-profile-pic-preview').src = ev.target.result;
-        reader.readAsDataURL(e.target.files[0]);
-    });
-
-    document.getElementById('config-form').addEventListener('submit', (e) => {
-        e.preventDefault();
-        localStorage.setItem('profilePicture', document.getElementById('config-profile-pic-preview').src);
-        showToast();
-        setTimeout(() => showView('login'), 1500);
-    });
-
-    document.getElementById('config-exit').addEventListener('click', () => showView('login'));
 </script>
+
 </body>
 </html>
