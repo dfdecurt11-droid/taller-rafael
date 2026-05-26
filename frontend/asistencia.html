@@ -203,7 +203,9 @@
 
 <script type="module">
 import { calcularDiferenciaHoras } from './reporte.js';
-const API_URL = "https://taller-rafael-1.onrender.com/api/trabajadores";
+const API_BASE = "https://taller-rafael-1.onrender.com";
+const API_TRABAJADORES = `${API_BASE}/api/trabajadores`;
+const API_ASISTENCIAS = `${API_BASE}/api/asistencias`;
 let trabajadores = [];
 let datosAsistencia = JSON.parse(localStorage.getItem('datosAsistencia_v1')) || {};
 let estadoMarcaciones = JSON.parse(localStorage.getItem('estadoMarcaciones_v4')) || {};
@@ -301,13 +303,14 @@ function guardarDashboard(data) {
     localStorage.setItem('dashboardData_v1', JSON.stringify(dashboardData));
 }
 async function marcarEntrada(id) {
-
+    // Buscamos al trabajador
     const t = trabajadores.find(x => x.id === id);
+    if (!t) return;
 
     const fh = obtenerFechaHoraTiempoReal();
 
+    // Actualizamos el estado local
     estadoMarcaciones[t.id].entrada = fh;
-
     estadoMarcaciones[t.id].salida = "--:--";
 
     localStorage.setItem(
@@ -315,67 +318,61 @@ async function marcarEntrada(id) {
         JSON.stringify(estadoMarcaciones)
     );
 
-    // GUARDAR EN API
+    // GUARDAR EN API (Usando URL absoluta a través de la constante)
     try {
-        await fetch("/api/asistencias", { // Cambiado a ruta relativa
+        const response = await fetch(API_ASISTENCIAS, { 
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
             },
             body: JSON.stringify({
-                trabajador_id: id,            // <-- Esto es lo que el server espera
-                fecha: new Date().toISOString().split("T")[0], // Formato YYYY-MM-DD es mejor para BD
+                trabajador_id: id,
+                fecha: new Date().toISOString().split("T")[0], 
                 hora_entrada: fh,
                 hora_salida: "--:--",
-                horas_trabajadas: 0,          // <-- Necesario para el servidor
-                estado: "presente"           // <-- Necesario para el servidor
+                horas_trabajadas: 0,
+                estado: "presente"
             })
         });
+
+        if (!response.ok) {
+            throw new Error('Error al registrar la entrada en el servidor');
+        }
+
     } catch(error) {
         console.error("Error al guardar en BD:", error);
+        mostrarNotificacionToast("Error al conectar con el servidor");
+        return; // Salimos si no se guardó en BD
     }
 
+    // Actualizamos el dashboard local
     guardarDashboard({
-
         trabajador: `${t.nombres} ${t.apellidos}`,
-
         fecha: fh,
-
         tipo: "entrada",
-
         horas: 0
-
     });
 
-    mostrarNotificacionToast(
-        `Entrada registrada para ${t.nombres}`
-    );
+    mostrarNotificacionToast(`Entrada registrada para ${t.nombres}`);
 
+    // Refrescamos la UI
     renderizarTabla();
-
 }
 async function marcarSalida(id) {
-
     const t = trabajadores.find(x => x.id === id);
+    if (!t) return;
 
-    const ent = estadoMarcaciones[t.id].entrada;
-
-    if (ent === "--:--") {
-
+    const ent = estadoMarcaciones[t.id]?.entrada;
+    if (!ent || ent === "--:--") {
         alert("Primero registra entrada");
-
         return;
-
     }
 
     // =========================================
     // OBTENER FECHA Y HORA DE SALIDA
     // =========================================
-
     const ahora = new Date();
-
     const fechaActual = ahora.toISOString().split("T")[0];
-
     const horaSalida = ahora.toLocaleTimeString('es-PE', {
         hour: '2-digit',
         minute: '2-digit',
@@ -388,83 +385,50 @@ async function marcarSalida(id) {
     // =========================================
     // OBTENER HORA ENTRADA LIMPIA
     // =========================================
-
-    const horaEntrada = ent.includes(" ")
-        ? ent.split(" ").pop()
-        : ent;
+    const horaEntrada = ent.includes(" ") ? ent.split(" ").pop() : ent;
 
     // =========================================
     // CALCULAR HORAS TRABAJADAS
     // =========================================
-
-    const hN = calcularDiferenciaHoras(
-        horaEntrada,
-        horaSalida
-    );
-
+    const hN = calcularDiferenciaHoras(horaEntrada, horaSalida);
     const nA = (parseFloat(t.horas) || 0) + hN;
-
     t.horas = nA;
 
     // =========================================
     // CALCULAR PAGOS
     // =========================================
-
     const pH = (parseFloat(t.sueldo_base) || 0) / 62;
-
     const pS = pH * nA;
 
     datosAsistencia[t.id] = {
-
         horas: parseFloat(nA.toFixed(4)),
-
         pago_hora: parseFloat(pH.toFixed(2)),
-
         pago_semanal: parseFloat(pS.toFixed(2))
-
     };
 
-    localStorage.setItem(
-        'datosAsistencia_v1',
-        JSON.stringify(datosAsistencia)
-    );
+    localStorage.setItem('datosAsistencia_v1', JSON.stringify(datosAsistencia));
 
     try {
-
         // =========================================
-        // ACTUALIZAR TRABAJADOR
+        // 1. ACTUALIZAR TRABAJADOR (API_TRABAJADORES)
         // =========================================
-
-        await fetch(`${API_URL}/${t.id}`, {
-
+        await fetch(`${API_TRABAJADORES}/${t.id}`, {
             method: "PUT",
-
-            headers: {
-                "Content-Type": "application/json"
-            },
-
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-
                 ...t,
-
                 horas: parseFloat(nA.toFixed(4)),
-
                 pago_hora: parseFloat(pH.toFixed(2)),
-
                 pago_semanal: parseFloat(pS.toFixed(2))
-
             })
-
         });
 
         // =========================================
-        // GUARDAR ASISTENCIA EN POSTGRES
+        // 2. GUARDAR ASISTENCIA (API_ASISTENCIAS)
         // =========================================
-        const resAsistencia = await fetch("/api/asistencias", {
+        const resAsistencia = await fetch(API_ASISTENCIAS, {
             method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
                 trabajador_id: t.id,
                 fecha: fechaActual,
@@ -475,61 +439,29 @@ async function marcarSalida(id) {
             })
         });
 
-        // Verificación de éxito
         if (!resAsistencia.ok) {
-            const errorData = await resAsistencia.json();
-            throw new Error(errorData.error || "Error al registrar en la base de datos");
+            throw new Error("Error al registrar en la base de datos");
         }
 
         // =========================================
-        // GUARDAR ESTADO LOCAL
+        // 3. GUARDAR ESTADO LOCAL Y DASHBOARD
         // =========================================
-
-        localStorage.setItem(
-            'estadoMarcaciones_v4',
-            JSON.stringify(estadoMarcaciones)
-        );
-
-        // =========================================
-        // DASHBOARD
-        // =========================================
+        localStorage.setItem('estadoMarcaciones_v4', JSON.stringify(estadoMarcaciones));
 
         guardarDashboard({
-
             trabajador: `${t.nombres} ${t.apellidos}`,
-
             fecha: fechaActual,
-
             tipo: "salida",
-
             horas: hN
-
         });
 
-        // =========================================
-        // MENSAJE
-        // =========================================
-
-        mostrarNotificacionToast(
-            "Salida guardada correctamente"
-        );
-
-        // =========================================
-        // ACTUALIZAR TABLA
-        // =========================================
-
+        mostrarNotificacionToast("Salida guardada correctamente");
         renderizarTabla();
 
     } catch (e) {
-
         console.error("Error al registrar salida:", e);
-
-        mostrarNotificacionToast(
-            "Error al guardar asistencia"
-        );
-
+        mostrarNotificacionToast("Error al guardar asistencia en el servidor");
     }
-
 }
 function abrirModalEdicion(id) {
     const t = trabajadores.find(x => x.id === id); document.getElementById("editIndex").value = t.id;
