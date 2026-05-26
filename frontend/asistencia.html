@@ -317,35 +317,22 @@ async function marcarEntrada(id) {
 
     // GUARDAR EN API
     try {
-
-        await fetch("https://taller-rafael-1.onrender.com/api/asistencias", {
-
+        await fetch("/api/asistencias", { // Cambiado a ruta relativa
             method: "POST",
-
             headers: {
                 "Content-Type": "application/json"
             },
-
             body: JSON.stringify({
-
-                dni: t.dni,
-
-                trabajador: `${t.apellidos}, ${t.nombres}`,
-
-                fecha: new Date().toLocaleDateString(),
-
+                trabajador_id: id,            // <-- Esto es lo que el server espera
+                fecha: new Date().toISOString().split("T")[0], // Formato YYYY-MM-DD es mejor para BD
                 hora_entrada: fh,
-
-                hora_salida: "--:--"
-
+                hora_salida: "--:--",
+                horas_trabajadas: 0,          // <-- Necesario para el servidor
+                estado: "presente"           // <-- Necesario para el servidor
             })
-
         });
-
     } catch(error) {
-
-        console.error(error);
-
+        console.error("Error al guardar en BD:", error);
     }
 
     guardarDashboard({
@@ -473,32 +460,26 @@ async function marcarSalida(id) {
         // =========================================
         // GUARDAR ASISTENCIA EN POSTGRES
         // =========================================
-
-        await fetch("https://taller-rafael-1.onrender.com/api/asistencias", {
-
+        const resAsistencia = await fetch("/api/asistencias", {
             method: "POST",
-
             headers: {
                 "Content-Type": "application/json"
             },
-
             body: JSON.stringify({
-
                 trabajador_id: t.id,
-
                 fecha: fechaActual,
-
                 hora_entrada: horaEntrada,
-
                 hora_salida: horaSalida,
-
                 horas_trabajadas: parseFloat(hN.toFixed(2)),
-
                 estado: "presente"
-
             })
-
         });
+
+        // Verificación de éxito
+        if (!resAsistencia.ok) {
+            const errorData = await resAsistencia.json();
+            throw new Error(errorData.error || "Error al registrar en la base de datos");
+        }
 
         // =========================================
         // GUARDAR ESTADO LOCAL
