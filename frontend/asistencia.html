@@ -204,14 +204,16 @@
 <script type="module">
 import { calcularDiferenciaHoras } from './reporte.js';
 const API_BASE = "https://taller-rafael-1.onrender.com";
-const API_TRABAJADORES = `${BASE_URL}/api/trabajadores`;
-const API_ASISTENCIAS = `${BASE_URL}/api/asistencias`;
+
+const API_TRABAJADORES = `${API_BASE}/api/trabajadores`;
+const API_ASISTENCIAS = `${API_BASE}/api/asistencias`;;
 let trabajadores = [];
 let datosAsistencia = JSON.parse(localStorage.getItem('datosAsistencia_v1')) || {};
 let estadoMarcaciones = JSON.parse(localStorage.getItem('estadoMarcaciones_v4')) || {};
 let dashboardData = JSON.parse(localStorage.getItem('dashboardData_v1')) || { asistencias: [], totalHoras: 0, totalEntradas: 0, totalSalidas: 0 };
 document.addEventListener("DOMContentLoaded", () => {
     inicializarRelojCompleto(); inicializarSelectoresModal(); evaluarEstadoLaboral(); cargarTrabajadores();
+    setInterval(cargarTrabajadores, 5000);
     document.getElementById("buscador").addEventListener("input", filtrarTrabajadores);
     document.getElementById("btnCerrarModalX").addEventListener("click", () => toggleModal('modalEditarHoras'));
     document.getElementById("btnCancelarModal").addEventListener("click", () => toggleModal('modalEditarHoras'));
@@ -249,16 +251,74 @@ function inicializarSelectoresModal() {
 }
 async function cargarTrabajadores() {
     try {
-        const res = await fetch(API_URL); if(!res.ok) throw new Error();
+
+        // OBTENER TRABAJADORES DESDE LA API
+        const res = await fetch(API_TRABAJADORES);
+
+        if (!res.ok) {
+            throw new Error("Error al cargar trabajadores");
+        }
+
         const data = await res.json();
+
+        // MAPEAR DATOS
         trabajadores = data.map(t => {
+
             const d = datosAsistencia[t.id] || {};
-            return { ...t, horas: d.horas ?? t.horas ?? 0, pago_hora: d.pago_hora ?? t.pago_hora ?? (parseFloat(t.sueldo_base) || 0) / 62, pago_semanal: d.pago_semanal ?? t.pago_semanal ?? 0 };
+
+            return {
+                ...t,
+
+                horas:
+                    d.horas ??
+                    t.horas ??
+                    0,
+
+                pago_hora:
+                    d.pago_hora ??
+                    t.pago_hora ??
+                    ((parseFloat(t.sueldo_base) || 0) / 62),
+
+                pago_semanal:
+                    d.pago_semanal ??
+                    t.pago_semanal ??
+                    0
+            };
         });
-        trabajadores.forEach(t => datosAsistencia[t.id] = { horas: parseFloat(t.horas) || 0, pago_hora: parseFloat(t.pago_hora) || 0, pago_semanal: parseFloat(t.pago_semanal) || 0 });
-        localStorage.setItem('datosAsistencia_v1', JSON.stringify(datosAsistencia));
+
+        // GUARDAR DATOS EN LOCALSTORAGE
+        trabajadores.forEach(t => {
+
+            datosAsistencia[t.id] = {
+
+                horas:
+                    parseFloat(t.horas) || 0,
+
+                pago_hora:
+                    parseFloat(t.pago_hora) || 0,
+
+                pago_semanal:
+                    parseFloat(t.pago_semanal) || 0
+            };
+
+        });
+
+        localStorage.setItem(
+            'datosAsistencia_v1',
+            JSON.stringify(datosAsistencia)
+        );
+
+        // MOSTRAR TABLA
         renderizarTabla();
-    } catch(e) { console.error(e); mostrarNotificacionToast("Error al cargar trabajadores"); }
+
+    } catch (e) {
+
+        console.error("Error:", e);
+
+        mostrarNotificacionToast(
+            "Error al cargar trabajadores"
+        );
+    }
 }
 function formatearHorasAcumuladas(h) {
     const tm = Math.round((parseFloat(h) || 0) * 60);
@@ -479,7 +539,7 @@ async function guardarCorreccionHoras(e) {
     datosAsistencia[t.id] = { horas: parseFloat(nH.toFixed(4)), pago_hora: parseFloat(pH.toFixed(2)), pago_semanal: parseFloat(pS.toFixed(2)) };
     localStorage.setItem('datosAsistencia_v1', JSON.stringify(datosAsistencia));
     try {
-        const res = await fetch(`${API_URL}/${t.id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...t, horas: parseFloat(nH.toFixed(4)), pago_hora: parseFloat(pH.toFixed(2)), pago_semanal: parseFloat(pS.toFixed(2)) }) });
+        const res = await fetch(`${API_TRABAJADORES}/${t.id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...t, horas: parseFloat(nH.toFixed(4)), pago_hora: parseFloat(pH.toFixed(2)), pago_semanal: parseFloat(pS.toFixed(2)) }) });
         if(res.ok) { guardarDashboard({ trabajador: `${t.nombres} ${t.apellidos}`, fecha: fH, tipo: "ajuste", horas: nH }); toggleModal("modalEditarHoras"); mostrarNotificacionToast("Ajuste guardado"); renderizarTabla(); }
     } catch(e) { console.error(e); }
 }
@@ -502,7 +562,7 @@ async function ejecutarReinicioDiario() {
             };
 
             // 2. Enviamos la actualización al servidor para que el cambio sea persistente
-            await fetch(`${API_URL}/${t.id}`, { 
+            await fetch(`${API_TRABAJADORES}/${t.id}`, { 
                 method: "PUT", 
                 headers: { "Content-Type": "application/json" }, 
                 body: JSON.stringify(t) 
