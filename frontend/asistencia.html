@@ -318,7 +318,7 @@ async function marcarEntrada(id) {
     // GUARDAR EN API
     try {
 
-        await fetch("http://localhost:3000/api/asistencias", {
+        await fetch("https://taller-rafael-1.onrender.com/api/asistencias", {
 
             method: "POST",
 
@@ -474,7 +474,7 @@ async function marcarSalida(id) {
         // GUARDAR ASISTENCIA EN POSTGRES
         // =========================================
 
-        await fetch("http://localhost:3000/api/asistencias", {
+        await fetch("https://taller-rafael-1.onrender.com/api/asistencias", {
 
             method: "POST",
 
