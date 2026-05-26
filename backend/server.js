@@ -9,7 +9,11 @@ const PORT = process.env.PORT || 3000;
 // CONFIGURACIÓN CORS
 // =========================================================================
 const allowedOrigins = [
-  "https://taller-rafael-1.onrender.com"
+    "https://taller-rafael-1.onrender.com",
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "http://localhost:5500",
+    "http://127.0.0.1:5500",
 ];
 
 const corsOptions = {
