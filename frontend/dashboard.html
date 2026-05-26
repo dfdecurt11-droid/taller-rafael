@@ -516,7 +516,9 @@
 
 <script>
 
-const API_URL = "https://taller-rafael-1.onrender.com/api/trabajadores";
+const API_URL = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
+    ? "http://localhost:3000/api/trabajadores"
+    : "https://taller-rafael-1.onrender.com/api/trabajadores";
 const FACTOR_HORAS_SEMANALES = 62;
 
 let trabajadores = [];
@@ -599,13 +601,28 @@ async function cargarTrabajadoresDesdeBackend(){
 
         const response = await fetch(API_URL);
 
-        trabajadores = await response.json();
+        if(!response.ok){
+            throw new Error(`Error del servidor: ${response.status} ${response.statusText}`);
+        }
+
+        const data = await response.json();
+
+        // Garantizar que siempre sea un array
+        trabajadores = Array.isArray(data) ? data : [];
+
+        if(!Array.isArray(data)){
+            console.warn("La API no devolvió un array:", data);
+        }
 
         renderizarTabla();
 
     }catch(error){
 
-        console.error(error);
+        console.error("Error al cargar trabajadores:", error);
+
+        trabajadores = [];
+
+        renderizarTabla();
 
     }
 
