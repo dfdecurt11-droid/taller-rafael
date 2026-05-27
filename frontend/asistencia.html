@@ -363,28 +363,20 @@ function guardarDashboard(data) {
     localStorage.setItem('dashboardData_v1', JSON.stringify(dashboardData));
 }
 async function marcarEntrada(id) {
-    // Buscamos al trabajador
+    // 1. Buscamos al trabajador
     const t = trabajadores.find(x => x.id === id);
     if (!t) return;
 
     const fh = obtenerFechaHoraTiempoReal();
 
-    // Actualizamos el estado local
-    estadoMarcaciones[t.id].entrada = fh;
-    estadoMarcaciones[t.id].salida = "--:--";
+    // NOTA: Eliminamos el bloque que guardaba en localStorage aquí.
+    // La "verdad" debe estar en el servidor, no en el navegador.
 
-    localStorage.setItem(
-        'estadoMarcaciones_v4',
-        JSON.stringify(estadoMarcaciones)
-    );
-
-    // GUARDAR EN API (Usando URL absoluta a través de la constante)
+    // 2. GUARDAR EN API
     try {
         const response = await fetch(API_ASISTENCIAS, { 
             method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
                 trabajador_id: id,
                 fecha: new Date().toISOString().split("T")[0], 
@@ -399,128 +391,67 @@ async function marcarEntrada(id) {
             throw new Error('Error al registrar la entrada en el servidor');
         }
 
+        // 3. Si tuvo éxito, recargamos los trabajadores para actualizar la tabla 
+        // con la información real que viene de la base de datos.
+        await cargarTrabajadores(); 
+
+        mostrarNotificacionToast(`Entrada registrada para ${t.nombres}`);
+
     } catch(error) {
         console.error("Error al guardar en BD:", error);
         mostrarNotificacionToast("Error al conectar con el servidor");
-        return; // Salimos si no se guardó en BD
+        return; 
     }
-
-    // Actualizamos el dashboard local
-    guardarDashboard({
-        trabajador: `${t.nombres} ${t.apellidos}`,
-        fecha: fh,
-        tipo: "entrada",
-        horas: 0
-    });
-
-    mostrarNotificacionToast(`Entrada registrada para ${t.nombres}`);
-
-    // Refrescamos la UI
-    renderizarTabla();
 }
 async function marcarSalida(id) {
     const t = trabajadores.find(x => x.id === id);
     if (!t) return;
 
-    const ent = estadoMarcaciones[t.id]?.entrada;
+    // 1. Obtención de entrada: En lugar de usar localStorage, 
+    // asegúrate de que 't' (que viene de cargarTrabajadores) tenga la info de entrada.
+    // Si tu API no devuelve la hora_entrada actual, debes consultar un endpoint 
+    // que te diga el estado de asistencia actual del trabajador.
+    const ent = estadoMarcaciones[t.id]?.entrada; 
+    
     if (!ent || ent === "--:--") {
         alert("Primero registra entrada");
         return;
     }
 
-    // =========================================
-    // OBTENER FECHA Y HORA DE SALIDA
-    // =========================================
     const ahora = new Date();
     const fechaActual = ahora.toISOString().split("T")[0];
-    const horaSalida = ahora.toLocaleTimeString('es-PE', {
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-        hour12: false
-    });
-
-    estadoMarcaciones[t.id].salida = horaSalida;
-
-    // =========================================
-    // OBTENER HORA ENTRADA LIMPIA
-    // =========================================
+    const horaSalida = ahora.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
     const horaEntrada = ent.includes(" ") ? ent.split(" ").pop() : ent;
 
-    // =========================================
-    // CALCULAR HORAS TRABAJADAS
-    // =========================================
+    // Cálculos
     const hN = calcularDiferenciaHoras(horaEntrada, horaSalida);
     const nA = (parseFloat(t.horas) || 0) + hN;
-    t.horas = nA;
-
-    // =========================================
-    // CALCULAR PAGOS
-    // =========================================
     const pH = (parseFloat(t.sueldo_base) || 0) / 62;
     const pS = pH * nA;
 
-    datosAsistencia[t.id] = {
-        horas: parseFloat(nA.toFixed(4)),
-        pago_hora: parseFloat(pH.toFixed(2)),
-        pago_semanal: parseFloat(pS.toFixed(2))
-    };
-
-    localStorage.setItem('datosAsistencia_v1', JSON.stringify(datosAsistencia));
-
     try {
-        // =========================================
-        // 1. ACTUALIZAR TRABAJADOR (API_TRABAJADORES)
-        // =========================================
+        // Actualizamos en servidor
         await fetch(`${API_TRABAJADORES}/${t.id}`, {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                ...t,
-                horas: parseFloat(nA.toFixed(4)),
-                pago_hora: parseFloat(pH.toFixed(2)),
-                pago_semanal: parseFloat(pS.toFixed(2))
-            })
+            body: JSON.stringify({ ...t, horas: parseFloat(nA.toFixed(4)), pago_hora: parseFloat(pH.toFixed(2)), pago_semanal: parseFloat(pS.toFixed(2)) })
         });
 
-        // =========================================
-        // 2. GUARDAR ASISTENCIA (API_ASISTENCIAS)
-        // =========================================
-        const resAsistencia = await fetch(API_ASISTENCIAS, {
+        await fetch(API_ASISTENCIAS, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                trabajador_id: t.id,
-                fecha: fechaActual,
-                hora_entrada: horaEntrada,
-                hora_salida: horaSalida,
-                horas_trabajadas: parseFloat(hN.toFixed(2)),
-                estado: "presente"
-            })
+            body: JSON.stringify({ trabajador_id: t.id, fecha: fechaActual, hora_entrada: horaEntrada, hora_salida: horaSalida, horas_trabajadas: parseFloat(hN.toFixed(2)), estado: "presente" })
         });
 
-        if (!resAsistencia.ok) {
-            throw new Error("Error al registrar en la base de datos");
-        }
-
-        // =========================================
-        // 3. GUARDAR ESTADO LOCAL Y DASHBOARD
-        // =========================================
-        localStorage.setItem('estadoMarcaciones_v4', JSON.stringify(estadoMarcaciones));
-
-        guardarDashboard({
-            trabajador: `${t.nombres} ${t.apellidos}`,
-            fecha: fechaActual,
-            tipo: "salida",
-            horas: hN
-        });
-
+        // 2. ELIMINAR localStorage.setItem de 'estadoMarcaciones_v4'
+        // 3. Forzar refresco global para todos los dispositivos
+        await cargarTrabajadores(); 
+        
         mostrarNotificacionToast("Salida guardada correctamente");
-        renderizarTabla();
-
+        
     } catch (e) {
-        console.error("Error al registrar salida:", e);
-        mostrarNotificacionToast("Error al guardar asistencia en el servidor");
+        console.error("Error:", e);
+        mostrarNotificacionToast("Error al guardar en el servidor");
     }
 }
 function abrirModalEdicion(id) {
