@@ -251,73 +251,45 @@ function inicializarSelectoresModal() {
 }
 async function cargarTrabajadores() {
     try {
+        // 1. OBTENER TRABAJADORES Y ASISTENCIAS EN PARALELO
+        const [resTrabajadores, resAsistencias] = await Promise.all([
+            fetch(API_TRABAJADORES),
+            fetch(API_ASISTENCIAS)
+        ]);
 
-        // OBTENER TRABAJADORES DESDE LA API
-        const res = await fetch(API_TRABAJADORES);
-
-        if (!res.ok) {
-            throw new Error("Error al cargar trabajadores");
+        if (!resTrabajadores.ok || !resAsistencias.ok) {
+            throw new Error("Error al conectar con el servidor");
         }
 
-        const data = await res.json();
+        const dataTrabajadores = await resTrabajadores.json();
+        const dataAsistencias = await resAsistencias.json();
 
-        // MAPEAR DATOS
-        trabajadores = data.map(t => {
-
-            const d = datosAsistencia[t.id] || {};
-
-            return {
-                ...t,
-
-                horas:
-                    d.horas ??
-                    t.horas ??
-                    0,
-
-                pago_hora:
-                    d.pago_hora ??
-                    t.pago_hora ??
-                    ((parseFloat(t.sueldo_base) || 0) / 62),
-
-                pago_semanal:
-                    d.pago_semanal ??
-                    t.pago_semanal ??
-                    0
-            };
+        // 2. ACTUALIZAR ESTADO DE MARCACIONES DESDE LA BASE DE DATOS
+        estadoMarcaciones = {}; // Limpiamos el estado viejo
+        dataAsistencias.forEach(a => {
+            // Solo nos interesa el registro abierto (sin hora de salida)
+            if (a.hora_salida === "00:00:00") {
+                estadoMarcaciones[a.trabajador_id] = {
+                    entrada: a.hora_entrada,
+                    salida: "--:--"
+                };
+            }
         });
 
-        // GUARDAR DATOS EN LOCALSTORAGE
-        trabajadores.forEach(t => {
+        // 3. MAPEAR TRABAJADORES USANDO LOS DATOS REALES DE LA API
+        trabajadores = dataTrabajadores.map(t => ({
+            ...t,
+            horas: parseFloat(t.horas) || 0,
+            pago_hora: parseFloat(t.pago_hora) || (parseFloat(t.sueldo_base) / 62),
+            pago_semanal: parseFloat(t.pago_semanal) || 0
+        }));
 
-            datosAsistencia[t.id] = {
-
-                horas:
-                    parseFloat(t.horas) || 0,
-
-                pago_hora:
-                    parseFloat(t.pago_hora) || 0,
-
-                pago_semanal:
-                    parseFloat(t.pago_semanal) || 0
-            };
-
-        });
-
-        localStorage.setItem(
-            'datosAsistencia_v1',
-            JSON.stringify(datosAsistencia)
-        );
-
-        // MOSTRAR TABLA
+        // 4. MOSTRAR TABLA (Sin depender de localStorage)
         renderizarTabla();
 
     } catch (e) {
-
-        console.error("Error:", e);
-
-        mostrarNotificacionToast(
-            "Error al cargar trabajadores"
-        );
+        console.error("Error al sincronizar:", e);
+        mostrarNotificacionToast("Error al conectar con la base de datos");
     }
 }
 function formatearHorasAcumuladas(h) {
@@ -404,50 +376,61 @@ async function marcarSalida(id) {
     const t = trabajadores.find(x => x.id === id);
     if (!t) return;
 
-    // 1. Obtención de entrada: En lugar de usar localStorage, 
-    // asegúrate de que 't' (que viene de cargarTrabajadores) tenga la info de entrada.
-    // Si tu API no devuelve la hora_entrada actual, debes consultar un endpoint 
-    // que te diga el estado de asistencia actual del trabajador.
-    const ent = estadoMarcaciones[t.id]?.entrada; 
-    
-    if (!ent || ent === "--:--") {
-        alert("Primero registra entrada");
-        return;
-    }
-
-    const ahora = new Date();
-    const fechaActual = ahora.toISOString().split("T")[0];
-    const horaSalida = ahora.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
-    const horaEntrada = ent.includes(" ") ? ent.split(" ").pop() : ent;
-
-    // Cálculos
-    const hN = calcularDiferenciaHoras(horaEntrada, horaSalida);
-    const nA = (parseFloat(t.horas) || 0) + hN;
-    const pH = (parseFloat(t.sueldo_base) || 0) / 62;
-    const pS = pH * nA;
-
     try {
-        // Actualizamos en servidor
+        // 1. OBTENER EL REGISTRO ABIERTO DESDE EL SERVIDOR (SIN LOCALSTORAGE)
+        const res = await fetch(API_ASISTENCIAS);
+        const asistencias = await res.json();
+        
+        // Buscamos el registro que pertenezca a este trabajador y no tenga hora de salida
+        const registroAbierto = asistencias.find(a => 
+            a.trabajador_id === id && a.hora_salida === "00:00:00"
+        );
+
+        if (!registroAbierto) {
+            mostrarNotificacionToast("No se encontró una entrada abierta");
+            return;
+        }
+
+        const horaEntrada = registroAbierto.hora_entrada;
+        const ahora = new Date();
+        const fechaActual = ahora.toISOString().split("T")[0];
+        const horaSalida = ahora.toTimeString().split(' ')[0]; // Formato HH:MM:SS
+
+        // Cálculos
+        const hN = calcularDiferenciaHoras(horaEntrada, horaSalida);
+        const nA = (parseFloat(t.horas) || 0) + hN;
+        const pH = (parseFloat(t.sueldo_base) || 0) / 62;
+        const pS = pH * nA;
+
+        // 2. ACTUALIZAR TRABAJADOR (PUT)
         await fetch(`${API_TRABAJADORES}/${t.id}`, {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ ...t, horas: parseFloat(nA.toFixed(4)), pago_hora: parseFloat(pH.toFixed(2)), pago_semanal: parseFloat(pS.toFixed(2)) })
+            body: JSON.stringify({ 
+                ...t, 
+                horas: parseFloat(nA.toFixed(4)), 
+                pago_semanal: parseFloat(pS.toFixed(2)) 
+            })
         });
 
-        await fetch(API_ASISTENCIAS, {
-            method: "POST",
+        // 3. ACTUALIZAR O REGISTRAR ASISTENCIA (POST o PUT)
+        // Nota: Si tu servidor tiene un endpoint PUT /api/asistencias/:id, úsalo aquí
+        // para marcar la salida en el registro existente en lugar de crear uno nuevo.
+        await fetch(`${API_ASISTENCIAS}/${registroAbierto.id}`, {
+            method: "PUT", 
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ trabajador_id: t.id, fecha: fechaActual, hora_entrada: horaEntrada, hora_salida: horaSalida, horas_trabajadas: parseFloat(hN.toFixed(2)), estado: "presente" })
+            body: JSON.stringify({ 
+                ...registroAbierto,
+                hora_salida: horaSalida,
+                horas_trabajadas: parseFloat(hN.toFixed(2))
+            })
         });
 
-        // 2. ELIMINAR localStorage.setItem de 'estadoMarcaciones_v4'
-        // 3. Forzar refresco global para todos los dispositivos
         await cargarTrabajadores(); 
-        
         mostrarNotificacionToast("Salida guardada correctamente");
         
     } catch (e) {
-        console.error("Error:", e);
+        console.error("Error al marcar salida:", e);
         mostrarNotificacionToast("Error al guardar en el servidor");
     }
 }
