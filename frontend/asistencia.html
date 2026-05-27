@@ -251,45 +251,39 @@ function inicializarSelectoresModal() {
 }
 async function cargarTrabajadores() {
     try {
-        // 1. OBTENER TRABAJADORES Y ASISTENCIAS EN PARALELO
         const [resTrabajadores, resAsistencias] = await Promise.all([
             fetch(API_TRABAJADORES),
             fetch(API_ASISTENCIAS)
         ]);
 
-        if (!resTrabajadores.ok || !resAsistencias.ok) {
-            throw new Error("Error al conectar con el servidor");
-        }
-
         const dataTrabajadores = await resTrabajadores.json();
         const dataAsistencias = await resAsistencias.json();
 
-        // 2. ACTUALIZAR ESTADO DE MARCACIONES DESDE LA BASE DE DATOS
-        estadoMarcaciones = {}; // Limpiamos el estado viejo
+        // 1. Obtener la fecha actual en formato YYYY-MM-DD para filtrar
+        const hoy = new Date().toISOString().split('T')[0];
+
+        // 2. Limpiar estado
+        estadoMarcaciones = {}; 
+
+        // 3. Filtrar asistencias solo para el día de hoy
         dataAsistencias.forEach(a => {
-            // Solo nos interesa el registro abierto (sin hora de salida)
-            if (a.hora_salida === "00:00:00") {
+            // Asegúrate de que la fecha en tu BD sea compatible con toISOString (YYYY-MM-DD)
+            const fechaRegistro = a.fecha.split('T')[0]; 
+            
+            if (fechaRegistro === hoy) {
                 estadoMarcaciones[a.trabajador_id] = {
-                    entrada: a.hora_entrada,
-                    salida: "--:--"
+                    entrada: a.hora_entrada || "--:--",
+                    salida: (a.hora_salida === "00:00:00" || !a.hora_salida) ? "--:--" : a.hora_salida
                 };
             }
         });
 
-        // 3. MAPEAR TRABAJADORES USANDO LOS DATOS REALES DE LA API
-        trabajadores = dataTrabajadores.map(t => ({
-            ...t,
-            horas: parseFloat(t.horas) || 0,
-            pago_hora: parseFloat(t.pago_hora) || (parseFloat(t.sueldo_base) / 62),
-            pago_semanal: parseFloat(t.pago_semanal) || 0
-        }));
-
-        // 4. MOSTRAR TABLA (Sin depender de localStorage)
-        renderizarTabla();
+        trabajadores = dataTrabajadores;
+        renderizarTabla(); 
 
     } catch (e) {
-        console.error("Error al sincronizar:", e);
-        mostrarNotificacionToast("Error al conectar con la base de datos");
+        console.error("Error al cargar datos:", e);
+        mostrarNotificacionToast("Error al sincronizar con el servidor");
     }
 }
 function formatearHorasAcumuladas(h) {
@@ -338,32 +332,45 @@ async function marcarEntrada(id) {
     const t = trabajadores.find(x => x.id === id);
     if (!t) return;
 
-    // Ajuste: Obtener hora en formato HH:MM:SS
-    const ahora = new Date();
-    const horaFormateada = ahora.toTimeString().split(' ')[0]; // Esto da "HH:MM:SS"
-    const fechaISO = ahora.toISOString().split('T')[0]; // Esto da "YYYY-MM-DD"
-
     try {
+        // 1. VALIDACIÓN: Verificar si ya tiene una entrada abierta hoy
+        const res = await fetch(API_ASISTENCIAS);
+        const asistencias = await res.json();
+        
+        // Buscamos si existe un registro de hoy para este trabajador sin salida
+        const hoy = new Date().toISOString().split('T')[0];
+        const yaTieneEntrada = asistencias.some(a => 
+            a.trabajador_id === id && 
+            a.fecha.split('T')[0] === hoy && 
+            a.hora_salida === "00:00:00"
+        );
+
+        if (yaTieneEntrada) {
+            mostrarNotificacionToast("Este trabajador ya tiene una entrada activa.");
+            return;
+        }
+
+        // 2. REGISTRO
+        const ahora = new Date();
+        const horaFormateada = ahora.toTimeString().split(' ')[0]; 
+        const fechaISO = ahora.toISOString().split('T')[0];
+
         const response = await fetch(API_ASISTENCIAS, { 
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
                 trabajador_id: id,
                 fecha: fechaISO, 
-                hora_entrada: horaFormateada, // Ahora es un formato válido
-                hora_salida: "00:00:00",      // Usa 00:00:00 en lugar de "--:--"
+                hora_entrada: horaFormateada,
+                hora_salida: "00:00:00", 
                 horas_trabajadas: 0,
                 estado: "presente"
             })
         });
 
-        if (!response.ok) {
-            // Esto nos dirá más detalle en la consola del navegador si falla
-            const errData = await response.json();
-            console.error("Detalle del error del servidor:", errData);
-            throw new Error('Error al registrar la entrada');
-        }
+        if (!response.ok) throw new Error('Error al registrar la entrada');
 
+        // 3. SINCRONIZACIÓN
         await cargarTrabajadores(); 
         mostrarNotificacionToast(`Entrada registrada para ${t.nombres}`);
 
@@ -377,45 +384,45 @@ async function marcarSalida(id) {
     if (!t) return;
 
     try {
-        // 1. OBTENER EL REGISTRO ABIERTO DESDE EL SERVIDOR (SIN LOCALSTORAGE)
+        // 1. OBTENER REGISTROS DE HOY PARA EVITAR ERRORES DE COMPARACIÓN
         const res = await fetch(API_ASISTENCIAS);
         const asistencias = await res.json();
+        const hoy = new Date().toISOString().split('T')[0];
         
-        // Buscamos el registro que pertenezca a este trabajador y no tenga hora de salida
+        // Buscamos el registro de hoy, de este trabajador, y que no tenga salida
         const registroAbierto = asistencias.find(a => 
-            a.trabajador_id === id && a.hora_salida === "00:00:00"
+            a.trabajador_id === id && 
+            a.fecha.split('T')[0] === hoy && 
+            a.hora_salida === "00:00:00"
         );
 
         if (!registroAbierto) {
-            mostrarNotificacionToast("No se encontró una entrada abierta");
+            mostrarNotificacionToast("No se encontró una entrada activa para hoy");
             return;
         }
 
-        const horaEntrada = registroAbierto.hora_entrada;
         const ahora = new Date();
-        const fechaActual = ahora.toISOString().split("T")[0];
-        const horaSalida = ahora.toTimeString().split(' ')[0]; // Formato HH:MM:SS
-
-        // Cálculos
-        const hN = calcularDiferenciaHoras(horaEntrada, horaSalida);
+        const horaSalida = ahora.toTimeString().split(' ')[0]; // HH:MM:SS
+        const hN = calcularDiferenciaHoras(registroAbierto.hora_entrada, horaSalida);
+        
+        // 2. CÁLCULOS
         const nA = (parseFloat(t.horas) || 0) + hN;
         const pH = (parseFloat(t.sueldo_base) || 0) / 62;
         const pS = pH * nA;
 
-        // 2. ACTUALIZAR TRABAJADOR (PUT)
+        // 3. ACTUALIZAR TRABAJADOR (PUT)
         await fetch(`${API_TRABAJADORES}/${t.id}`, {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ 
                 ...t, 
-                horas: parseFloat(nA.toFixed(4)), 
+                horas: parseFloat(nA.toFixed(4)),
+                pago_hora: parseFloat(pH.toFixed(2)),
                 pago_semanal: parseFloat(pS.toFixed(2)) 
             })
         });
 
-        // 3. ACTUALIZAR O REGISTRAR ASISTENCIA (POST o PUT)
-        // Nota: Si tu servidor tiene un endpoint PUT /api/asistencias/:id, úsalo aquí
-        // para marcar la salida en el registro existente en lugar de crear uno nuevo.
+        // 4. CERRAR REGISTRO DE ASISTENCIA (PUT)
         await fetch(`${API_ASISTENCIAS}/${registroAbierto.id}`, {
             method: "PUT", 
             headers: { "Content-Type": "application/json" },
@@ -431,12 +438,8 @@ async function marcarSalida(id) {
         
     } catch (e) {
         console.error("Error al marcar salida:", e);
-        mostrarNotificacionToast("Error al guardar en el servidor");
+        mostrarNotificacionToast("Error de conexión al marcar salida");
     }
-}
-function abrirModalEdicion(id) {
-    const t = trabajadores.find(x => x.id === id); document.getElementById("editIndex").value = t.id;
-    document.getElementById("editTrabajadorNombre").value = `${t.apellidos}, ${t.nombres}`; toggleModal("modalEditarHoras");
 }
 async function guardarCorreccionHoras(e) {
     e.preventDefault();
