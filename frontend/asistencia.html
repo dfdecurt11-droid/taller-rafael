@@ -363,44 +363,41 @@ function guardarDashboard(data) {
     localStorage.setItem('dashboardData_v1', JSON.stringify(dashboardData));
 }
 async function marcarEntrada(id) {
-    // 1. Buscamos al trabajador
     const t = trabajadores.find(x => x.id === id);
     if (!t) return;
 
-    const fh = obtenerFechaHoraTiempoReal();
+    // Ajuste: Obtener hora en formato HH:MM:SS
+    const ahora = new Date();
+    const horaFormateada = ahora.toTimeString().split(' ')[0]; // Esto da "HH:MM:SS"
+    const fechaISO = ahora.toISOString().split('T')[0]; // Esto da "YYYY-MM-DD"
 
-    // NOTA: Eliminamos el bloque que guardaba en localStorage aquí.
-    // La "verdad" debe estar en el servidor, no en el navegador.
-
-    // 2. GUARDAR EN API
     try {
         const response = await fetch(API_ASISTENCIAS, { 
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
                 trabajador_id: id,
-                fecha: new Date().toISOString().split("T")[0], 
-                hora_entrada: fh,
-                hora_salida: "--:--",
+                fecha: fechaISO, 
+                hora_entrada: horaFormateada, // Ahora es un formato válido
+                hora_salida: "00:00:00",      // Usa 00:00:00 en lugar de "--:--"
                 horas_trabajadas: 0,
                 estado: "presente"
             })
         });
 
         if (!response.ok) {
-            throw new Error('Error al registrar la entrada en el servidor');
+            // Esto nos dirá más detalle en la consola del navegador si falla
+            const errData = await response.json();
+            console.error("Detalle del error del servidor:", errData);
+            throw new Error('Error al registrar la entrada');
         }
 
-        // 3. Si tuvo éxito, recargamos los trabajadores para actualizar la tabla 
-        // con la información real que viene de la base de datos.
         await cargarTrabajadores(); 
-
         mostrarNotificacionToast(`Entrada registrada para ${t.nombres}`);
 
     } catch(error) {
         console.error("Error al guardar en BD:", error);
         mostrarNotificacionToast("Error al conectar con el servidor");
-        return; 
     }
 }
 async function marcarSalida(id) {
